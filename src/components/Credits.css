@@ -1,0 +1,90 @@
+/* Credits Widget Styles */
+.credits-widget {
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.credits-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.credits-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.credits-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.credits-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.credits-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.credits-divider {
+    height: 1px;
+    background: var(--glass-border);
+    margin: var(--space-md) 0;
+}
+
+.plan-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.plan-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--text-secondary);
+}
+
+.plan-item>div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.plan-label {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+
+.plan-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.upgrade-button {
+    width: 100%;
+    padding: var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}

@@ -1,0 +1,144 @@
+/* User Tooltip */
+.user-tooltip {
+    position: fixed;
+    z-index: 10000;
+    min-width: 280px;
+    max-width: 320px;
+    padding: var(--space-md);
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    pointer-events: none;
+    transform: translate(-50%, 10px);
+}
+
+/* Tooltip Arrow */
+.user-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--glass-border);
+}
+
+.user-tooltip::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid var(--bg-primary);
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: var(--space-md);
+}
+
+.tooltip-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.tooltip-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tooltip-user-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tooltip-username {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.tooltip-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.tooltip-detail-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.tooltip-detail-item svg {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+}
+
+.tooltip-detail-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tooltip-detail-item .role-badge {
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tooltip-detail-item .role-badge.free,
+.tooltip-detail-item .role-badge.usuario,
+.tooltip-detail-item .role-badge.miembro {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.tooltip-detail-item .role-badge.premium {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.tooltip-detail-item .role-badge.pro {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.tooltip-detail-item .role-badge.admin {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.tooltip-detail-item .role-badge.dev {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}

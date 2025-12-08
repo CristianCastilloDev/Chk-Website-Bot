@@ -1,0 +1,677 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+
+    if (userSnap.exists()) {
+  return { id: userSnap.id, ...userSnap.data() };
+}
+return null;
+  } catch (error) {
+  console.error('Error getting user document:', error);
+  throw error;
+}
+};
+
+export const updateUserDocument = async (uid, updates) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating user document:', error);
+    throw error;
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    const users = [];
+    usersSnap.forEach((doc) => {
+      users.push({ id: doc.id, ...doc.data() });
+    });
+
+    return users;
+  } catch (error) {
+    console.error('Error getting all users:', error);
+    throw error;
+  }
+};
+
+export const getUsersByRole = async (role) => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('role', '==', role));
+    const usersSnap = await getDocs(q);
+
+    const users = [];
+    usersSnap.forEach((doc) => {
+      users.push({ id: doc.id, ...doc.data() });
+    });
+
+    return users;
+  } catch (error) {
+    console.error('Error getting users by role:', error);
+    throw error;
+  }
+};
+
+// ========== CREDITS MANAGEMENT ==========
+
+export const addCredits = async (uid, amount, description = 'Credits added') => {
+  try {
+    const userRef = doc(db, 'users', uid);
+
+    // Update user credits
+    await updateDoc(userRef, {
+      credits: increment(amount),
+      updatedAt: serverTimestamp()
+    });
+
+    // Log transaction
+    await createTransaction({
+      userId: uid,
+      type: 'purchase',
+      credits: amount,
+      description
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error adding credits:', error);
+    throw error;
+  }
+};
+
+export const deductCredits = async (uid, amount, description = 'Credits used') => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error('User not found');
+    }
+
+    const currentCredits = userSnap.data().credits || 0;
+
+    if (currentCredits < amount) {
+      throw new Error('Insufficient credits');
+    }
+
+    // Update user credits
+    await updateDoc(userRef, {
+      credits: increment(-amount),
+      updatedAt: serverTimestamp()
+    });
+
+    // Log transaction
+    await createTransaction({
+      userId: uid,
+      type: 'usage',
+      credits: -amount,
+      description
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error deducting credits:', error);
+    throw error;
+  }
+};
+
+export const getCreditsBalance = async (uid) => {
+  try {
+    const user = await getUserDocument(uid);
+    return user?.credits || 0;
+  } catch (error) {
+    console.error('Error getting credits balance:', error);
+    throw error;
+  }
+};
+
+// ========== PLANS MANAGEMENT ==========
+
+export const assignPlan = async (uid, planData) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+
+    const planUpdate = {
+      plan: {
+        type: planData.type,
+        startDate: serverTimestamp(),
+        endDate: planData.endDate || null,
+        creditsPerMonth: planData.creditsPerMonth || 0
+      },
+      updatedAt: serverTimestamp()
+    };
+
+    // If plan includes credits, add them
+    if (planData.credits) {
+      planUpdate.credits = increment(planData.credits);
+
+      await createTransaction({
+        userId: uid,
+        type: 'purchase',
+        credits: planData.credits,
+        description: `Plan ${planData.type} activated`
+      });
+    }
+
+    await updateDoc(userRef, planUpdate);
+    return true;
+  } catch (error) {
+    console.error('Error assigning plan:', error);
+    throw error;
+  }
+};
+
+export const getPlans = async () => {
+  try {
+    const plansRef = collection(db, 'plans');
+    const q = query(plansRef, where('active', '==', true));
+    const plansSnap = await getDocs(q);
+
+    const plans = [];
+    plansSnap.forEach((doc) => {
+      plans.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Sort by price in JavaScript instead of Firestore
+    return plans.sort((a, b) => a.price - b.price);
+  } catch (error) {
+    console.error('Error getting plans:', error);
+    throw error;
+  }
+};
+
+export const createPlan = async (planData) => {
+  try {
+    const planRef = doc(collection(db, 'plans'));
+
+    const newPlan = {
+      name: planData.name,
+      type: planData.type,
+      price: planData.price,
+      credits: planData.credits,
+      features: planData.features || [],
+      popular: planData.popular || false,
+      active: planData.active !== undefined ? planData.active : true,
+      createdAt: serverTimestamp()
+    };
+
+    await setDoc(planRef, newPlan);
+    return { id: planRef.id, ...newPlan };
+  } catch (error) {
+    console.error('Error creating plan:', error);
+    throw error;
+  }
+};
+
+export const updatePlan = async (planId, updates) => {
+  try {
+    const planRef = doc(db, 'plans', planId);
+    await updateDoc(planRef, {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating plan:', error);
+    throw error;
+  }
+};
+
+// ========== TRANSACTIONS ==========
+
+export const createTransaction = async (transactionData) => {
+  try {
+    const transactionRef = doc(collection(db, 'transactions'));
+
+    const newTransaction = {
+      userId: transactionData.userId,
+      type: transactionData.type, // 'purchase', 'usage', 'refund'
+      credits: transactionData.credits,
+      description: transactionData.description,
+      createdAt: serverTimestamp()
+    };
+
+    await setDoc(transactionRef, newTransaction);
+    return { id: transactionRef.id, ...newTransaction };
+  } catch (error) {
+    console.error('Error creating transaction:', error);
+    throw error;
+  }
+};
+
+export const getUserTransactions = async (uid) => {
+  try {
+    const transactionsRef = collection(db, 'transactions');
+    const q = query(
+      transactionsRef,
+      where('userId', '==', uid),
+      orderBy('createdAt', 'desc')
+    );
+    const transactionsSnap = await getDocs(q);
+
+    const transactions = [];
+    transactionsSnap.forEach((doc) => {
+      transactions.push({ id: doc.id, ...doc.data() });
+    });
+
+    return transactions;
+  } catch (error) {
+    console.error('Error getting user transactions:', error);
+    throw error;
+  }
+};
+
+// ========== HELPER FUNCTIONS ==========
+
+const generateAvatar = (name) => {
+  const initials = name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const colors = [
+    '#6366f1', '#8b5cf6', '#ec4899', '#06b6d4',
+    '#10b981', '#f59e0b', '#ef4444', '#3b82f6'
+  ];
+
+  const color = colors[Math.floor(Math.random() * colors.length)];
+
+  return { initials, color };
+};
+
+// ========== DASHBOARD DATA ==========
+
+export const getDashboardData = () => {
+  // Mock data for analytics (can be replaced with real Firestore queries)
+  return {
+    stats: {
+      totalUsers: 1248,
+      revenue: 45231,
+      growth: 12.5,
+      activeUsers: 892
+    },
+    analytics: {
+      userGrowth: [
+        { month: 'Jan', users: 400 },
+        { month: 'Feb', users: 600 },
+        { month: 'Mar', users: 800 },
+        { month: 'Apr', users: 1000 },
+        { month: 'May', users: 1100 },
+        { month: 'Jun', users: 1248 }
+      ],
+      revenue: [
+        { month: 'Jan', revenue: 20000 },
+        { month: 'Feb', revenue: 25000 },
+        { month: 'Mar', revenue: 30000 },
+        { month: 'Apr', revenue: 35000 },
+        { month: 'May', revenue: 40000 },
+        { month: 'Jun', revenue: 45231 }
+      ],
+      traffic: [
+        { name: 'Direct', value: 400 },
+        { name: 'Social', value: 300 },
+        { name: 'Organic', value: 300 },
+        { name: 'Referral', value: 200 }
+      ]
+    }
+  };
+};
+
+// ========== INITIAL DATA SEEDING ==========
+
+export const seedInitialPlans = async () => {
+  try {
+    const plans = [
+      {
+        name: 'Free',
+        type: 'free',
+        price: 0,
+        credits: 10,
+        features: [
+          '10 credits per month',
+          'Basic analytics',
+          'Email support',
+          'Community access'
+        ],
+        popular: false,
+        active: true
+      },
+      {
+        name: 'Monthly Pro',
+        type: 'monthly',
+        price: 29,
+        credits: 100,
+        features: [
+          '100 credits per month',
+          'Advanced analytics',
+          'Priority support',
+          'API access',
+          'Custom integrations'
+        ],
+        popular: true,
+        active: true
+      },
+      {
+        name: 'Annual Pro',
+        type: 'annual',
+        price: 290,
+        credits: 1200,
+        features: [
+          '1200 credits per year',
+          'Advanced analytics',
+          'Priority support',
+          'API access',
+          'Custom integrations',
+          '2 months free'
+        ],
+        popular: false,
+        active: true
+      },
+      {
+        name: 'Lifetime',
+        type: 'lifetime',
+        price: 999,
+        credits: 10000,
+        features: [
+          '10,000 credits (one-time)',
+          'Lifetime access',
+          'All features included',
+          'Priority support',
+          'API access',
+          'Custom integrations',
+          'Early access to new features'
+        ],
+        popular: false,
+        active: true
+      }
+    ];
+
+    for (const plan of plans) {
+      await createPlan(plan);
+    }
+
+    console.log('Initial plans seeded successfully');
+    return true;
+  } catch (error) {
+    console.error('Error seeding initial plans:', error);
+    throw error;
+  }
+};
+
+// ========== ADMIN USER MANAGEMENT ==========
+
+export const updateUserCredits = async (userId, newCredits, adminId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      credits: newCredits,
+      updatedAt: serverTimestamp()
+    });
+
+    // Log transaction
+    await addTransaction({
+      userId,
+      type: 'admin_credit_update',
+      amount: newCredits,
+      description: `Credits updated by admin`,
+      adminId,
+      timestamp: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error updating user credits:', error);
+    throw error;
+  }
+};
+
+export const updateUserRole = async (userId, newRole, adminId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      role: newRole,
+      updatedAt: serverTimestamp()
+    });
+
+    // Log transaction
+    await addTransaction({
+      userId,
+      type: 'admin_role_update',
+      description: `Role updated to \ by admin`,
+      adminId,
+      timestamp: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    throw error;
+  }
+};
+
+export const updateUserPlan = async (userId, planId, durationDays, adminId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const plan = await getPlan(planId);
+
+    if (!plan) throw new Error('Plan not found');
+
+    const now = new Date();
+    const updates = {
+      plan: plan.name,
+      planActivatedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    // Set expiration for time-limited plans
+    if (durationDays && durationDays > 0) {
+      const expirationDate = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      updates.planExpiresAt = expirationDate;
+      updates.planDuration = durationDays;
+    } else {
+      // Lifetime plan
+      updates.planExpiresAt = null;
+      updates.planDuration = null;
+    }
+
+    await updateDoc(userRef, updates);
+
+    // Log transaction
+    await addTransaction({
+      userId,
+      type: 'admin_plan_update',
+      description: `Plan updated to \ by admin`,
+      adminId,
+      timestamp: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error updating user plan:', error);
+    throw error;
+  }
+};
+
+
+// ========== STATISTICS ==========
+
+export const getTotalUsersCount = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+    return usersSnap.size;
+  } catch (error) {
+    console.error('Error getting total users count:', error);
+    throw error;
+  }
+};
+
+export const getRoleDistribution = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    const distribution = {
+      free: 0,
+      premium: 0,
+      pro: 0,
+      admin: 0,
+      dev: 0
+    };
+
+    usersSnap.forEach((doc) => {
+      const role = doc.data().role;
+      if (distribution.hasOwnProperty(role)) {
+        distribution[role]++;
+      }
+    });
+
+    return distribution;
+  } catch (error) {
+    console.error('Error getting role distribution:', error);
+    throw error;
+  }
+};
+
+export const getTotalCreditsDistributed = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    let totalCredits = 0;
+    usersSnap.forEach((doc) => {
+      const credits = doc.data().credits || 0;
+      totalCredits += credits;
+    });
+
+    return totalCredits;
+  } catch (error) {
+    console.error('Error getting total credits:', error);
+    throw error;
+  }
+};
+
+export const getActivePlansCount = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    let activeCount = 0;
+    usersSnap.forEach((doc) => {
+      const role = doc.data().role;
+      if (['premium', 'pro'].includes(role)) {
+        activeCount++;
+      }
+    });
+
+    return activeCount;
+  } catch (error) {
+    console.error('Error getting active plans count:', error);
+    throw error;
+  }
+};
+
+
+// ========== PLAN EXPIRATION ==========
+
+export const checkAndExpirePlans = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    const now = new Date();
+    let expiredCount = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const userData = userDoc.data();
+
+      // Skip dev and admin users
+      if (userData.role === 'dev' || userData.role === 'admin') continue;
+
+      // Check if plan has expiration date
+      if (userData.planExpiresAt) {
+        const expirationDate = userData.planExpiresAt.toDate();
+
+        // If plan expired, revert to free
+        if (expirationDate <= now) {
+          await updateDoc(doc(db, 'users', userDoc.id), {
+            role: 'free',
+            plan: 'Free',
+            planExpiresAt: null,
+            planDuration: null,
+            previousPlan: userData.plan,
+            updatedAt: serverTimestamp()
+          });
+
+          // Log expiration
+          await addTransaction({
+            userId: userDoc.id,
+            type: 'plan_expired',
+            description: `Plan \ expired, reverted to Free`,
+            timestamp: serverTimestamp()
+          });
+
+          expiredCount++;
+        }
+      }
+    }
+
+    console.log(`Expired \ plans`);
+    return expiredCount;
+  } catch (error) {
+    console.error('Error checking expired plans:', error);
+    throw error;
+  }
+};
+
+export const getExpiringPlans = async (daysAhead = 7) => {
+  try {
+    const usersRef = collection(db, 'users');
+    const usersSnap = await getDocs(usersRef);
+
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+    const expiringUsers = [];
+
+    usersSnap.forEach((doc) => {
+      const userData = doc.data();
+
+      if (userData.planExpiresAt) {
+        const expirationDate = userData.planExpiresAt.toDate();
+
+        if (expirationDate > now && expirationDate <= futureDate) {
+          expiringUsers.push({
+            id: doc.id,
+            ...userData,
+            daysUntilExpiration: Math.ceil((expirationDate - now) / (24 * 60 * 60 * 1000))
+          });
+        }
+      }
+    });
+
+    return expiringUsers;
+  } catch (error) {
+    console.error('Error getting expiring plans:', error);
+    throw error;
+  }
+};
+
