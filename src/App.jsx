@@ -13,7 +13,6 @@ import LivesAdmin from './pages/LivesAdmin';
 import UpdateGate from './pages/UpdateGate';
 import BinAnalytics from './pages/BinAnalytics';
 import InsertTestLives from './pages/InsertTestLives';
-import ManageBins from './pages/ManageBins';
 import Herramientas from './pages/Herramientas';
 import EmailTemporal from './pages/EmailTemporal';
 import SMSTemporal from './pages/SMSTemporal';
@@ -106,13 +105,6 @@ function App() {
       <Route path="/insert-test-lives" element={
         <ProtectedRoute>
           <InsertTestLives />
-        </ProtectedRoute>
-      } />
-
-      {/* Dev-only route for managing BINs - Hidden from menu */}
-      <Route path="/dev/manage-bins" element={
-        <ProtectedRoute>
-          <ManageBins />
         </ProtectedRoute>
       } />
 

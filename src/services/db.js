@@ -748,6 +748,73 @@ export const getUserBinSearches = async (userId) => {
   }
 };
 
+
+// Helper function to fetch BIN data with cache-first strategy
+const fetchBinDataFromAPI = async (bin) => {
+  try {
+    // 1. Primero buscar en el caché de Firestore
+    const cacheRef = doc(db, 'bin_cache', bin);
+    const cacheDoc = await getDoc(cacheRef);
+
+    if (cacheDoc.exists()) {
+      //console.log(`✅ BIN ${bin} encontrado en caché`);
+      const cachedData = cacheDoc.data();
+      return {
+        bank: cachedData.bank,
+        country: cachedData.country,
+        type: cachedData.type,
+        brand: cachedData.brand,
+        level: cachedData.level,
+        prepaid: cachedData.prepaid
+      };
+    }
+
+    // 2. Si no está en caché, consultar la API
+    console.log(`🌐 BIN ${bin} no está en caché, consultando API...`);
+    const response = await fetch(`https://bin-ip-checker.p.rapidapi.com/?bin=${bin}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json, text/plain, */*',
+        'X-RapidAPI-Key': 'f4f24adea3mshaa035122af7c477p173fcbjsnad38016e6ced',
+        'X-RapidAPI-Host': 'bin-ip-checker.p.rapidapi.com',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      body: new URLSearchParams({ 'bin': bin })
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (!data.success || !data.BIN) return null;
+
+    const binData = data.BIN;
+    const binInfo = {
+      bank: binData.issuer?.name || 'Desconocido',
+      country: binData.country?.name || 'Desconocido',
+      type: binData.type || 'Desconocido',
+      brand: binData.brand || binData.scheme || 'Desconocido',
+      level: binData.level || 'Standard',
+      prepaid: binData.is_prepaid === 'true' || binData.is_prepaid === true
+    };
+
+    // 3. Guardar en caché para futuras consultas
+    await setDoc(cacheRef, {
+      ...binInfo,
+      bin: bin,
+      cachedAt: serverTimestamp(),
+      lastUpdated: new Date().toISOString()
+    });
+
+    console.log(`💾 BIN ${bin} guardado en caché`);
+    return binInfo;
+
+  } catch (error) {
+    console.error(`Error fetching BIN ${bin}:`, error);
+    return null;
+  }
+};
+
 export const getBinStats = async () => {
   try {
     // Obtener todas las lives
@@ -755,9 +822,35 @@ export const getBinStats = async () => {
     const livesSnapshot = await getDocs(livesRef);
     const lives = livesSnapshot.docs.map(doc => doc.data());
 
+    // Obtener información de BINs únicos desde la API
+    const uniqueBins = [...new Set(lives.map(live => live.bin).filter(Boolean))];
+    const binDataCache = {};
+
+    // Consultar API para cada BIN único (en paralelo)
+    await Promise.all(
+      uniqueBins.map(async (bin) => {
+        const binData = await fetchBinDataFromAPI(bin);
+        if (binData) {
+          binDataCache[bin] = binData;
+        }
+      })
+    );
+
+    // Enriquecer lives con datos de la API
+    const enrichedLives = lives.map(live => {
+      if (live.bin && binDataCache[live.bin]) {
+        return {
+          ...live,
+          bank: binDataCache[live.bin].bank,
+          country: binDataCache[live.bin].country
+        };
+      }
+      return live;
+    });
+
     // BINs con más lives (BINs más usados que dieron lives)
     const binLivesCount = {};
-    lives.forEach(live => {
+    enrichedLives.forEach(live => {
       if (live.bin) {
         binLivesCount[live.bin] = (binLivesCount[live.bin] || 0) + 1;
       }
@@ -768,7 +861,7 @@ export const getBinStats = async () => {
 
     // Top bancos (suma de lives por banco, aunque sean BINs diferentes)
     const bankCount = {};
-    lives.forEach(live => {
+    enrichedLives.forEach(live => {
       if (live.bank && live.bank !== 'Desconocido') {
         bankCount[live.bank] = (bankCount[live.bank] || 0) + 1;
       }
@@ -779,14 +872,59 @@ export const getBinStats = async () => {
 
     // Top países (suma de lives por país)
     const countryCount = {};
-    lives.forEach(live => {
+    enrichedLives.forEach(live => {
       if (live.country && live.country !== 'Desconocido') {
         countryCount[live.country] = (countryCount[live.country] || 0) + 1;
       }
     });
     const topCountries = Object.entries(countryCount)
       .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 7); // Top 7
+
+    // Top marcas (VISA, Mastercard, etc.)
+    const brandCount = {};
+    enrichedLives.forEach(live => {
+      if (live.bin && binDataCache[live.bin]?.brand) {
+        const brand = binDataCache[live.bin].brand;
+        if (brand && brand !== 'Desconocido') {
+          brandCount[brand] = (brandCount[brand] || 0) + 1;
+        }
+      }
+    });
+    const topBrands = Object.entries(brandCount)
+      .map(([brand, count]) => ({ brand, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 7); // Top 7
+
+    // Tipos de tarjeta (Credit vs Debit)
+    const typeCount = {};
+    enrichedLives.forEach(live => {
+      if (live.bin && binDataCache[live.bin]?.type) {
+        const type = binDataCache[live.bin].type;
+        if (type && type !== 'Desconocido') {
+          typeCount[type] = (typeCount[type] || 0) + 1;
+        }
+      }
+    });
+    const cardTypes = Object.entries(typeCount)
+      .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count);
+
+    // Niveles de tarjeta (Classic, Gold, Platinum, etc.)
+    const levelCount = {};
+    enrichedLives.forEach(live => {
+      if (live.bin && binDataCache[live.bin]?.level) {
+        const level = binDataCache[live.bin].level;
+        if (level && level !== 'Standard') {
+          levelCount[level] = (levelCount[level] || 0) + 1;
+        }
+      }
+    });
+    const cardLevels = Object.entries(levelCount)
+      .map(([level, count]) => ({ level, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 7); // Top 7
 
     // BINs más consultados en BIN Analytics (búsquedas manuales)
     const searchesRef = collection(db, 'bin_searches');
@@ -799,13 +937,17 @@ export const getBinStats = async () => {
     });
     const mostCheckedBins = Object.entries(binCheckCount)
       .map(([bin, count]) => ({ bin, count }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 7); // Top 7
 
     return {
-      topBinsWithLives,
+      topBinsWithLives: topBinsWithLives.slice(0, 7), // Top 7
       mostCheckedBins,
-      topBanks,
-      topCountries
+      topBanks: topBanks.slice(0, 7), // Top 7
+      topCountries,
+      topBrands,
+      cardTypes,
+      cardLevels
     };
   } catch (error) {
     console.error('Error getting BIN stats:', error);
@@ -813,7 +955,10 @@ export const getBinStats = async () => {
       topBinsWithLives: [],
       mostCheckedBins: [],
       topBanks: [],
-      topCountries: []
+      topCountries: [],
+      topBrands: [],
+      cardTypes: [],
+      cardLevels: []
     };
   }
 };
