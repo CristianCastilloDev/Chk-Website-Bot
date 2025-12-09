@@ -587,6 +587,7 @@
 .users-table {
     border-radius: var(--radius-lg);
     overflow: hidden;
+    position: relative;
 }
 
 /* Encabezado de tabla de usuarios con 7 columnas */
@@ -598,6 +599,11 @@
     background: var(--bg-secondary);
     font-weight: 600;
     color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* Cuerpo de tabla de usuarios */
@@ -613,12 +619,49 @@
     gap: var(--space-md);
     padding: var(--space-lg);
     border-bottom: 1px solid var(--glass-border);
-    transition: background var(--transition-fast);
+    transition: all 0.2s ease;
+}
+
+/* Zebra striping sutil */
+.users-table .table-row:nth-child(even) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .users-table .table-row:nth-child(even) {
+    background: rgba(0, 0, 0, 0.01);
+}
+
+/* Hover effect mejorado */
+.users-table .table-row:hover {
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--primary);
+    cursor: pointer;
 }
 
 /* Última fila sin borde inferior */
 .users-table .table-row:last-child {
     border-bottom: none;
+}
+
+/* Mejoras generales para todas las tablas */
+.table-row {
+    transition: all 0.2s ease;
+}
+
+.table-row:hover {
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--primary);
+}
+
+/* Sticky header para tablas generales */
+.table-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* ==================== ICONOS DE ESTADO DE GATES ==================== */

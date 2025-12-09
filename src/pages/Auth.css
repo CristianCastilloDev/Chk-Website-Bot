@@ -155,14 +155,34 @@
 /* Error Message */
 .error-message {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-sm);
     padding: var(--space-md);
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid var(--error);
+    border-left: 4px solid var(--error);
     border-radius: var(--radius-md);
     color: var(--error);
     font-size: 0.9rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Input error state */
+.input-error {
+    border-color: var(--error) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
 }
 
 /* Auth Footer */

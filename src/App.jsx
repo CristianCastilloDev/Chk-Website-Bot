@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './context/AuthContext';
+import { ToastProvider } from './components/Toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Overview from './pages/Overview';
@@ -22,120 +23,122 @@ import Pricing from './pages/Pricing';
 
 function App() {
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/pricing" element={<Pricing />} />
+    <ToastProvider>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<Pricing />} />
 
-      {/* Protected Routes */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Overview />
-        </ProtectedRoute>
-      } />
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Overview />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/analytics/*" element={
-        <ProtectedRoute>
-          <Analytics />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/analytics/*" element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/billing" element={
-        <ProtectedRoute>
-          <Overview /> {/* Placeholder for billing, using Overview for now */}
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/billing" element={
+          <ProtectedRoute>
+            <Overview /> {/* Placeholder for billing, using Overview for now */}
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/settings/*" element={
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/settings/*" element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        } />
 
-      {/* Admin Routes */}
-      <Route path="/dashboard/users/*" element={
-        <AdminRoute>
-          <Users />
-        </AdminRoute>
-      } />
+        {/* Admin Routes */}
+        <Route path="/dashboard/users/*" element={
+          <AdminRoute>
+            <Users />
+          </AdminRoute>
+        } />
 
-      <Route path="/dashboard/sales/*" element={
-        <AdminRoute>
-          <Sales />
-        </AdminRoute>
-      } />
+        <Route path="/dashboard/sales/*" element={
+          <AdminRoute>
+            <Sales />
+          </AdminRoute>
+        } />
 
-      <Route path="/dashboard/gates/*" element={
-        <ProtectedRoute>
-          <Gates />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/gates/*" element={
+          <ProtectedRoute>
+            <Gates />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/gates/my-lives" element={
-        <ProtectedRoute>
-          <MyLives />
-        </ProtectedRoute>
-      } />
+        <Route path="/gates/my-lives" element={
+          <ProtectedRoute>
+            <MyLives />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/admin/gate-status" element={
-        <ProtectedRoute>
-          <GateStatusManager />
-        </ProtectedRoute>
-      } />
+        <Route path="/admin/gate-status" element={
+          <ProtectedRoute>
+            <GateStatusManager />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/admin/lives" element={
-        <ProtectedRoute>
-          <LivesAdmin />
-        </ProtectedRoute>
-      } />
+        <Route path="/admin/lives" element={
+          <ProtectedRoute>
+            <LivesAdmin />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/update-gate" element={
-        <ProtectedRoute>
-          <UpdateGate />
-        </ProtectedRoute>
-      } />
+        <Route path="/update-gate" element={
+          <ProtectedRoute>
+            <UpdateGate />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/bin-analytics" element={
-        <ProtectedRoute>
-          <BinAnalytics />
-        </ProtectedRoute>
-      } />
+        <Route path="/bin-analytics" element={
+          <ProtectedRoute>
+            <BinAnalytics />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/insert-test-lives" element={
-        <ProtectedRoute>
-          <InsertTestLives />
-        </ProtectedRoute>
-      } />
+        <Route path="/insert-test-lives" element={
+          <ProtectedRoute>
+            <InsertTestLives />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/herramientas/*" element={
-        <ProtectedRoute>
-          <Herramientas />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/herramientas/*" element={
+          <ProtectedRoute>
+            <Herramientas />
+          </ProtectedRoute>
+        } />
 
-      {/* Herramientas Sub-routes */}
-      <Route path="/dashboard/herramientas/email" element={
-        <ProtectedRoute>
-          <EmailTemporal />
-        </ProtectedRoute>
-      } />
+        {/* Herramientas Sub-routes */}
+        <Route path="/dashboard/herramientas/email" element={
+          <ProtectedRoute>
+            <EmailTemporal />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/herramientas/sms" element={
-        <ProtectedRoute>
-          <SMSTemporal />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/herramientas/sms" element={
+          <ProtectedRoute>
+            <SMSTemporal />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/dashboard/herramientas/address" element={
-        <ProtectedRoute>
-          <FakeAddress />
-        </ProtectedRoute>
-      } />
+        <Route path="/dashboard/herramientas/address" element={
+          <ProtectedRoute>
+            <FakeAddress />
+          </ProtectedRoute>
+        } />
 
-      {/* Catch all - redirect to dashboard */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        {/* Catch all - redirect to dashboard */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </ToastProvider>
   );
 }
 
