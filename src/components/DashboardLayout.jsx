@@ -187,6 +187,28 @@ const DashboardLayout = ({ children, currentPage }) => {
         return false;
     };
 
+    // Calculate remaining days from plan expiration
+    const getRemainingDays = (planExpiresAt) => {
+        if (!planExpiresAt) return 0;
+        const expirationDate = planExpiresAt.toDate ? planExpiresAt.toDate() : new Date(planExpiresAt);
+        const now = new Date();
+        const diffTime = expirationDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays > 0 ? diffDays : 0;
+    };
+
+    // Get badge style based on value
+    const getBadgeStyle = (value) => ({
+        background: value === 0
+            ? 'rgba(239, 68, 68, 0.15)'
+            : 'rgba(16, 185, 129, 0.15)',
+        border: value === 0
+            ? '1px solid rgba(239, 68, 68, 0.3)'
+            : '1px solid rgba(16, 185, 129, 0.3)',
+        color: value === 0 ? '#ef4444' : '#10b981'
+    });
+
+
     return (
         <div className="dashboard-layout">
             {/* Sidebar */}
@@ -336,14 +358,98 @@ const DashboardLayout = ({ children, currentPage }) => {
                     </button>
 
                     <div className="header-actions">
-                        {/* Credits Display for non-admin users */}
-                        {!isAdmin() && user?.credits !== undefined && (
-                            <div className="header-credits">
-                                <DollarSign size={18} className="credits-icon" />
-                                <div className="credits-info">
-                                    <span className="credits-amount">{user.credits}</span>
-                                    <span className="credits-label">credits</span>
-                                </div>
+                        {/* User Status Badges */}
+                        {user && (
+                            <div className="header-badges">
+                                {(() => {
+                                    try {
+                                        const userIsAdmin = user?.role === 'admin' || user?.role === 'dev';
+
+                                        if (userIsAdmin) {
+                                            // Unlimited badge for admin/dev
+                                            return (
+                                                <div
+                                                    className="status-badge"
+                                                    style={{
+                                                        background: 'rgba(249, 115, 22, 0.15)',
+                                                        border: '1px solid rgba(249, 115, 22, 0.3)',
+                                                        color: '#f97316',
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '8px',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: 600,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                >
+                                                    <Shield size={16} />
+                                                    <span>Unlimited</span>
+                                                </div>
+                                            );
+                                        }
+
+                                        // Plan and Credits badges for regular users
+                                        const remainingDays = getRemainingDays(user?.planExpiresAt);
+                                        const credits = user?.credits ?? 0;
+
+                                        // Determine plan name based on plan field or active subscription
+                                        let planName = 'Free';
+                                        if (user?.plan && user.plan !== 'free') {
+                                            // User has explicit plan set
+                                            planName = user.plan.charAt(0).toUpperCase() + user.plan.slice(1);
+                                        } else if (remainingDays > 0) {
+                                            // User has active days but no plan field - assume Premium
+                                            planName = 'Premium';
+                                        }
+
+                                        return (
+                                            <>
+                                                {/* Plan & Days Badge */}
+                                                <div
+                                                    className="status-badge"
+                                                    style={{
+                                                        ...getBadgeStyle(remainingDays),
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '8px',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: 600,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                >
+                                                    <CreditCard size={16} />
+                                                    <span>{planName} - {remainingDays} Days</span>
+                                                </div>
+
+                                                {/* Credits Badge */}
+                                                <div
+                                                    className="status-badge"
+                                                    style={{
+                                                        ...getBadgeStyle(credits),
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '8px',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: 600,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.5rem',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                >
+                                                    <DollarSign size={16} />
+                                                    <span>{credits} Credits</span>
+                                                </div>
+                                            </>
+                                        );
+                                    } catch (error) {
+                                        console.error('Error rendering badges:', error);
+                                        return null;
+                                    }
+                                })()}
                             </div>
                         )}
                     </div>

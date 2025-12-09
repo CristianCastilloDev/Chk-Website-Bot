@@ -26,7 +26,7 @@ const BinAnalytics = () => {
         cardLevels: []
     });
     const [statsLoading, setStatsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('stats'); // 'stats', 'charts', or 'gates' - Default: stats
+    const [activeTab, setActiveTab] = useState('search'); // 'search', 'stats', 'charts', or 'gates' - Default: search
 
     // Gate Search States
     const [searchBin, setSearchBin] = useState('');
@@ -308,363 +308,391 @@ const BinAnalytics = () => {
                     <h1><Search size={32} style={{ display: 'inline', marginRight: '10px' }} />BIN Analytics</h1>
                     <p>Analiza información de tarjetas y estadísticas</p>
                 </div>
+                {/* Botones de Pestañas */}
+                <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    marginBottom: '2rem',
+                    borderBottom: '2px solid var(--border-color)',
+                    paddingBottom: '0.5rem'
+                }}>
+                    <button
+                        onClick={() => setActiveTab('search')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: activeTab === 'search' ? 'linear-gradient(135deg, #06b6d4, #0891b2)' : 'transparent',
+                            color: activeTab === 'search' ? '#fff' : 'var(--text-secondary)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            transition: 'all 0.3s ease',
+                            boxShadow: activeTab === 'search' ? '0 4px 12px rgba(6, 182, 212, 0.3)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (activeTab !== 'search') {
+                                e.currentTarget.style.background = 'var(--bg-secondary)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (activeTab !== 'search') {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }
+                        }}
+                    >
+                        🔍 Consultar BIN
+                    </button>
 
-                <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', borderRadius: '12px' }}>
-                    <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <CreditCard size={24} />
-                        Consultar BIN
-                    </h3>
+                    <button
+                        onClick={() => setActiveTab('stats')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: activeTab === 'stats' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+                            color: activeTab === 'stats' ? '#fff' : 'var(--text-secondary)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            transition: 'all 0.3s ease',
+                            boxShadow: activeTab === 'stats' ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (activeTab !== 'stats') {
+                                e.currentTarget.style.background = 'var(--bg-secondary)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (activeTab !== 'stats') {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }
+                        }}
+                    >
+                        📊 Estadísticas
+                    </button>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                        <input
-                            type="text"
-                            value={bin}
-                            onChange={(e) => setBin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            placeholder="Ingresa cualquier BIN (6 dígitos, ej: 426807)"
-                            style={{
-                                flex: 1,
-                                padding: '0.75rem 1rem',
-                                fontSize: '1rem',
-                                border: '2px solid var(--border-color)',
-                                borderRadius: '8px',
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-primary)'
-                            }}
-                            maxLength={6}
-                        />
-                        <button
-                            onClick={analyzeBin}
-                            disabled={loading || bin.length < 6}
-                            className="btn-primary"
-                            style={{ padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            <Search size={20} />
-                            {loading ? 'Analizando...' : 'Analizar'}
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => setActiveTab('charts')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: activeTab === 'charts' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                            color: activeTab === 'charts' ? '#fff' : 'var(--text-secondary)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            transition: 'all 0.3s ease',
+                            boxShadow: activeTab === 'charts' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (activeTab !== 'charts') {
+                                e.currentTarget.style.background = 'var(--bg-secondary)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (activeTab !== 'charts') {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }
+                        }}
+                    >
+                        📊 Gráficos
+                    </button>
 
-                    {error && (
-                        <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <AlertCircle size={20} />
-                            {error}
-                        </div>
-                    )}
-
-                    {result && (
-                        <div style={{ marginTop: '1.5rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                                <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <Building2 size={18} />
-                                        <span style={{ fontSize: '0.85rem' }}>Banco</span>
-                                    </div>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>{result.bank}</p>
-                                </div>
-
-                                <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <Globe size={18} />
-                                        <span style={{ fontSize: '0.85rem' }}>País</span>
-                                    </div>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>{result.country} ({result.countryCode})</p>
-                                </div>
-
-                                <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <CreditCard size={18} />
-                                        <span style={{ fontSize: '0.85rem' }}>Tipo</span>
-                                    </div>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.type}</p>
-                                </div>
-
-                                <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <CheckCircle size={18} />
-                                        <span style={{ fontSize: '0.85rem' }}>Marca</span>
-                                    </div>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.brand}</p>
-                                </div>
-
-                                <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <CreditCard size={18} />
-                                        <span style={{ fontSize: '0.85rem' }}>Nivel</span>
-                                    </div>
-                                    <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.level}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <button
+                        onClick={() => setActiveTab('gates')}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            background: activeTab === 'gates' ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)' : 'transparent',
+                            color: activeTab === 'gates' ? '#fff' : 'var(--text-secondary)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            transition: 'all 0.3s ease',
+                            boxShadow: activeTab === 'gates' ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (activeTab !== 'gates') {
+                                e.currentTarget.style.background = 'var(--bg-secondary)';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (activeTab !== 'gates') {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }
+                        }}
+                    >
+                        🔍 Buscar Gate
+                    </button>
                 </div>
 
-                {/* Sistema de Pestañas */}
-                {!statsLoading && (stats.topBanks.length > 0 || stats.topCountries.length > 0) && (
-                    <div style={{ marginBottom: '2rem' }}>
-                        {/* Botones de Pestañas */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '1rem',
-                            marginBottom: '2rem',
-                            borderBottom: '2px solid var(--border-color)',
-                            paddingBottom: '0.5rem'
-                        }}>
-                            <button
-                                onClick={() => setActiveTab('stats')}
-                                style={{
-                                    padding: '0.75rem 1.5rem',
-                                    background: activeTab === 'stats' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
-                                    color: activeTab === 'stats' ? '#fff' : 'var(--text-secondary)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                    fontWeight: 600,
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: activeTab === 'stats' ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (activeTab !== 'stats') {
-                                        e.currentTarget.style.background = 'var(--bg-secondary)';
-                                        e.currentTarget.style.color = 'var(--text-primary)';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (activeTab !== 'stats') {
-                                        e.currentTarget.style.background = 'transparent';
-                                        e.currentTarget.style.color = 'var(--text-secondary)';
-                                    }
-                                }}
-                            >
-                                📊 Estadísticas
-                            </button>
+                {/* Pestaña: Consultar BIN */}
+                {activeTab === 'search' && (
 
-                            <button
-                                onClick={() => setActiveTab('charts')}
-                                style={{
-                                    padding: '0.75rem 1.5rem',
-                                    background: activeTab === 'charts' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                                    color: activeTab === 'charts' ? '#fff' : 'var(--text-secondary)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                    fontWeight: 600,
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: activeTab === 'charts' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (activeTab !== 'charts') {
-                                        e.currentTarget.style.background = 'var(--bg-secondary)';
-                                        e.currentTarget.style.color = 'var(--text-primary)';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (activeTab !== 'charts') {
-                                        e.currentTarget.style.background = 'transparent';
-                                        e.currentTarget.style.color = 'var(--text-secondary)';
-                                    }
-                                }}
-                            >
-                                📊 Gráficos
-                            </button>
+                    <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', borderRadius: '12px' }}>
+                        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CreditCard size={24} />
+                            Consultar BIN
+                        </h3>
 
-                            <button
-                                onClick={() => setActiveTab('gates')}
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                            <input
+                                type="text"
+                                value={bin}
+                                onChange={(e) => setBin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                placeholder="Ingresa cualquier BIN (6 dígitos, ej: 426807)"
                                 style={{
-                                    padding: '0.75rem 1.5rem',
-                                    background: activeTab === 'gates' ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)' : 'transparent',
-                                    color: activeTab === 'gates' ? '#fff' : 'var(--text-secondary)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
+                                    flex: 1,
+                                    padding: '0.75rem 1rem',
                                     fontSize: '1rem',
-                                    fontWeight: 600,
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: activeTab === 'gates' ? '0 4px 12px rgba(139, 92, 246, 0.3)' : 'none'
+                                    border: '2px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)'
                                 }}
-                                onMouseEnter={(e) => {
-                                    if (activeTab !== 'gates') {
-                                        e.currentTarget.style.background = 'var(--bg-secondary)';
-                                        e.currentTarget.style.color = 'var(--text-primary)';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (activeTab !== 'gates') {
-                                        e.currentTarget.style.background = 'transparent';
-                                        e.currentTarget.style.color = 'var(--text-secondary)';
-                                    }
-                                }}
+                                maxLength={6}
+                            />
+                            <button
+                                onClick={analyzeBin}
+                                disabled={loading || bin.length < 6}
+                                className="btn-primary"
+                                style={{ padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                             >
-                                🔍 Buscar Gate
+                                <Search size={20} />
+                                {loading ? 'Analizando...' : 'Analizar'}
                             </button>
                         </div>
 
-                        {/* Sección de Gráficos Visuales */}
-                        {activeTab === 'charts' && (
-                            <div style={{ marginBottom: '2rem' }}>
-                                <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <TrendingUp size={28} />
-                                    📊 Estadísticas Visuales
-                                </h2>
+                        {error && (
+                            <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <AlertCircle size={20} />
+                                {error}
+                            </div>
+                        )}
 
-                                {/* Grid de Gráficos */}
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-
-                                    {/* Top Bancos - Bar Chart */}
-                                    {stats.topBanks.length > 0 && (
-                                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', transition: 'all 0.3s ease', cursor: 'pointer' }}
-                                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)'; }}
-                                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Building2 size={20} />
-                                                Top Bancos
-                                            </h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <BarChart data={stats.topBanks.map(item => ({ name: item.bank.substring(0, 20), value: item.count }))}>
-                                                    <defs>
-                                                        <linearGradient id="colorBanks" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
-                                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.4} />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} style={{ fontSize: '0.75rem', fill: 'var(--text-secondary)' }} />
-                                                    <YAxis style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
-                                                    <Tooltip
-                                                        contentStyle={{
-                                                            background: 'rgba(30, 30, 46, 0.95)',
-                                                            border: '2px solid rgba(59, 130, 246, 0.6)',
-                                                            borderRadius: '12px',
-                                                            padding: '12px 16px',
-                                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                                                            backdropFilter: 'blur(10px)'
-                                                        }}
-                                                        labelStyle={{ color: '#fff', fontWeight: 700, marginBottom: '6px', fontSize: '0.95rem' }}
-                                                        itemStyle={{ color: '#3b82f6', fontWeight: 600 }}
-                                                        cursor={{ fill: 'rgba(59, 130, 246, 0.15)' }}
-                                                    />
-                                                    <Bar dataKey="value" fill="url(#colorBanks)" radius={[8, 8, 0, 0]} animationDuration={1200} animationBegin={0} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                        {result && (
+                            <div style={{ marginTop: '1.5rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                    <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <Building2 size={18} />
+                                            <span style={{ fontSize: '0.85rem' }}>Banco</span>
                                         </div>
-                                    )}
+                                        <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>{result.bank}</p>
+                                    </div>
 
-                                    {/* Tipos de Tarjeta - Donut Chart */}
-                                    {stats.cardTypes.length > 0 && (
-                                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <CreditCard size={20} />
-                                                Tipos de Tarjeta
-                                            </h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <PieChart>
-                                                    <Pie
-                                                        data={stats.cardTypes.map(item => ({ name: item.type, value: item.count }))}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={100}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                        label={(entry) => `${entry.name}: ${entry.value}`}
-                                                    >
-                                                        {stats.cardTypes.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : '#6b7280'} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip
-                                                        contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                    />
-                                                </PieChart>
-                                            </ResponsiveContainer>
+                                    <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <Globe size={18} />
+                                            <span style={{ fontSize: '0.85rem' }}>País</span>
                                         </div>
-                                    )}
+                                        <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>{result.country} ({result.countryCode})</p>
+                                    </div>
 
-                                    {/* Top Países - Bar Chart */}
-                                    {stats.topCountries.length > 0 && (
-                                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <Globe size={20} />
-                                                Top Países
-                                            </h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <BarChart data={stats.topCountries.map(item => ({ name: item.country, value: item.count }))}>
-                                                    <XAxis dataKey="name" style={{ fontSize: '0.85rem' }} />
-                                                    <YAxis />
-                                                    <Tooltip
-                                                        contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                        labelStyle={{ color: 'var(--text-primary)' }}
-                                                    />
-                                                    <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                    <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <CreditCard size={18} />
+                                            <span style={{ fontSize: '0.85rem' }}>Tipo</span>
                                         </div>
-                                    )}
+                                        <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.type}</p>
+                                    </div>
 
-                                    {/* Niveles de Tarjeta - Donut Chart */}
-                                    {stats.cardLevels.length > 0 && (
-                                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <TrendingUp size={20} />
-                                                Niveles de Tarjeta
-                                            </h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <PieChart>
-                                                    <Pie
-                                                        data={stats.cardLevels.map(item => ({ name: item.level, value: item.count }))}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={100}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                        label={(entry) => `${entry.name}: ${entry.value}`}
-                                                    >
-                                                        {stats.cardLevels.map((entry, index) => {
-                                                            const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899'];
-                                                            return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
-                                                        })}
-                                                    </Pie>
-                                                    <Tooltip
-                                                        contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                    />
-                                                </PieChart>
-                                            </ResponsiveContainer>
+                                    <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <CheckCircle size={18} />
+                                            <span style={{ fontSize: '0.85rem' }}>Marca</span>
                                         </div>
-                                    )}
+                                        <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.brand}</p>
+                                    </div>
 
-                                    {/* Top Marcas - Bar Chart */}
-                                    {stats.topBrands.length > 0 && (
-                                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', gridColumn: stats.topBrands.length > 3 ? '1 / -1' : 'auto' }}>
-                                            <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <CheckCircle size={20} />
-                                                Top Marcas
-                                            </h3>
-                                            <ResponsiveContainer width="100%" height={300}>
-                                                <BarChart data={stats.topBrands.map(item => ({ name: item.brand, value: item.count }))} layout="horizontal">
-                                                    <XAxis type="number" style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
-                                                    <YAxis dataKey="name" type="category" width={120} style={{ fontSize: '0.85rem', fill: 'var(--text-primary)' }} />
-                                                    <Tooltip
-                                                        contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                        labelStyle={{ color: 'var(--text-primary)' }}
-                                                    />
-                                                    <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                                                        {stats.topBrands.map((entry, index) => {
-                                                            const brandColors = {
-                                                                'VISA': '#1a1f71',
-                                                                'MASTERCARD': '#eb001b',
-                                                                'AMEX': '#006fcf',
-                                                                'DISCOVER': '#ff6000'
-                                                            };
-                                                            return <Cell key={`cell-${index}`} fill={brandColors[entry.brand.toUpperCase()] || '#8b5cf6'} />;
-                                                        })}
-                                                    </Bar>
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                    <div className="glass" style={{ padding: '1rem', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                                            <CreditCard size={18} />
+                                            <span style={{ fontSize: '0.85rem' }}>Nivel</span>
                                         </div>
-                                    )}
+                                        <p style={{ fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase' }}>{result.level}</p>
+                                    </div>
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* Sección de Gráficos Visuales */}
+                {!statsLoading && (stats.topBanks.length > 0 || stats.topCountries.length > 0) && activeTab === 'charts' && (
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <TrendingUp size={28} />
+                            📊 Estadísticas Visuales
+                        </h2>
+
+                        {/* Grid de Gráficos */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+
+                            {/* Top Bancos - Bar Chart */}
+                            {stats.topBanks.length > 0 && (
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', transition: 'all 0.3s ease', cursor: 'pointer' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Building2 size={20} />
+                                        Top Bancos
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <BarChart data={stats.topBanks.map(item => ({ name: item.bank.substring(0, 20), value: item.count }))}>
+                                            <defs>
+                                                <linearGradient id="colorBanks" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.4} />
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} style={{ fontSize: '0.75rem', fill: 'var(--text-secondary)' }} />
+                                            <YAxis style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    background: 'rgba(30, 30, 46, 0.95)',
+                                                    border: '2px solid rgba(59, 130, 246, 0.6)',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 16px',
+                                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                                                    backdropFilter: 'blur(10px)'
+                                                }}
+                                                labelStyle={{ color: '#fff', fontWeight: 700, marginBottom: '6px', fontSize: '0.95rem' }}
+                                                itemStyle={{ color: '#3b82f6', fontWeight: 600 }}
+                                                cursor={{ fill: 'rgba(59, 130, 246, 0.15)' }}
+                                            />
+                                            <Bar dataKey="value" fill="url(#colorBanks)" radius={[8, 8, 0, 0]} animationDuration={1200} animationBegin={0} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+
+                            {/* Tipos de Tarjeta - Donut Chart */}
+                            {stats.cardTypes.length > 0 && (
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <CreditCard size={20} />
+                                        Tipos de Tarjeta
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <PieChart>
+                                            <Pie
+                                                data={stats.cardTypes.map(item => ({ name: item.type, value: item.count }))}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                                label={(entry) => `${entry.name}: ${entry.value}`}
+                                            >
+                                                {stats.cardTypes.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : '#6b7280'} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+
+                            {/* Top Países - Bar Chart */}
+                            {stats.topCountries.length > 0 && (
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Globe size={20} />
+                                        Top Países
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <BarChart data={stats.topCountries.map(item => ({ name: item.country, value: item.count }))}>
+                                            <XAxis dataKey="name" style={{ fontSize: '0.85rem' }} />
+                                            <YAxis />
+                                            <Tooltip
+                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                                labelStyle={{ color: 'var(--text-primary)' }}
+                                            />
+                                            <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+
+                            {/* Niveles de Tarjeta - Donut Chart */}
+                            {stats.cardLevels.length > 0 && (
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <TrendingUp size={20} />
+                                        Niveles de Tarjeta
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <PieChart>
+                                            <Pie
+                                                data={stats.cardLevels.map(item => ({ name: item.level, value: item.count }))}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                                label={(entry) => `${entry.name}: ${entry.value}`}
+                                            >
+                                                {stats.cardLevels.map((entry, index) => {
+                                                    const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899'];
+                                                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                                                })}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+
+                            {/* Top Marcas - Bar Chart */}
+                            {stats.topBrands.length > 0 && (
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', gridColumn: stats.topBrands.length > 3 ? '1 / -1' : 'auto' }}>
+                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <CheckCircle size={20} />
+                                        Top Marcas
+                                    </h3>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                        <BarChart data={stats.topBrands.map(item => ({ name: item.brand, value: item.count }))} layout="horizontal">
+                                            <XAxis type="number" style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
+                                            <YAxis dataKey="name" type="category" width={120} style={{ fontSize: '0.85rem', fill: 'var(--text-primary)' }} />
+                                            <Tooltip
+                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                                labelStyle={{ color: 'var(--text-primary)' }}
+                                            />
+                                            <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                                                {stats.topBrands.map((entry, index) => {
+                                                    const brandColors = {
+                                                        'VISA': '#1a1f71',
+                                                        'MASTERCARD': '#eb001b',
+                                                        'AMEX': '#006fcf',
+                                                        'DISCOVER': '#ff6000'
+                                                    };
+                                                    return <Cell key={`cell-${index}`} fill={brandColors[entry.brand.toUpperCase()] || '#8b5cf6'} />;
+                                                })}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -1043,7 +1071,7 @@ const BinAnalytics = () => {
                 )}
             </div>
 
-        </DashboardLayout>
+        </DashboardLayout >
     );
 };
 

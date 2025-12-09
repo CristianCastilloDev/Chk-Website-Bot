@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Send, Trash2, Download, AlertCircle, CheckCircle, XCircle, Clock, Zap, Heart, ChevronDown } from 'lucide-react';
+import { Shield, Send, Trash2, Download, AlertCircle, CheckCircle, XCircle, Clock, Zap, Heart, ChevronDown, CreditCard, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import GateCard from '../components/GateCard';
@@ -17,10 +17,10 @@ const Gates = () => {
     const [gates, setGates] = useState([]);
     const [selectedGate, setSelectedGate] = useState(null);
     const [loadingGates, setLoadingGates] = useState(true);
+    const [showGateModal, setShowGateModal] = useState(false);
     const [collapsedSections, setCollapsedSections] = useState({
-        stripe: true,
-        paypal: true,
-        braintree: true
+        charge: false,  // CHARGE abierto por defecto
+        auth: true      // AUTH cerrado por defecto
     });
 
     const { canInteract, hasActiveSubscription, isAdmin, isDev } = usePermissions();
@@ -253,6 +253,38 @@ const Gates = () => {
         }
     };
 
+
+    const getGateIcon = (type) => {
+        const iconStyle = { width: '32px', height: '32px', borderRadius: '25%' };
+        switch (type) {
+            case 'stripe':
+                return <img src="https://cdn.simpleicons.org/stripe/6366f1" alt="Stripe" style={iconStyle} />;
+            case 'paypal':
+                return <img src="https://cdn.simpleicons.org/paypal/0070ba" alt="PayPal" style={iconStyle} />;
+            case 'braintree':
+                return <img src="https://cdn.simpleicons.org/braintree/00c853" alt="Braintree" style={iconStyle} />;
+            case 'authorize':
+                return <img src="https://play-lh.googleusercontent.com/tr8pu9LKDdj1jwezlMPSntXjdNOgIuzYUQM5rK4Cnr8tJf6LDAxhdj4SaR4BYt7XKg=w240-h480-rw" alt="Authorize.Net" style={iconStyle} />;
+            case 'cardknox':
+                return <img src="https://avatars.githubusercontent.com/u/12068809?s=200&v=4" alt="cardknox" style={iconStyle} />;
+            case 'cybersource':
+                return <img src="https://yt3.googleusercontent.com/ytc/AIdro_nFtxG9aSjVCran4CC53pNqV4hjhgM23hMduoangaiOQvA=s160-c-k-c0x00ffffff-no-rj" alt="Cybersource" style={iconStyle} />;
+            case 'idk':
+                return <Zap size={32} style={{ color: '#9333ea' }} />;
+            case 'moneris':
+                return <img src="https://avatars.githubusercontent.com/u/18684316?s=200&v=4" alt="Moneris" style={iconStyle} />;
+            case 'nmi':
+                return <img src="https://techspark.co/wp-content/uploads/2021/11/nmi-uai-516x516.png" alt="NMI" style={iconStyle} />;
+            case 'payfabric':
+                return <CreditCard size={32} style={{ color: '#0ea5e9' }} />;
+            case 'payflow':
+                return <img src="https://cdn.simpleicons.org/paypal/0070ba" alt="PayFlow" style={iconStyle} />;
+            default:
+                return <Shield size={32} />;
+        }
+    };
+
+
     const toggleSection = (section) => {
         setCollapsedSections(prev => ({
             ...prev,
@@ -279,12 +311,48 @@ const Gates = () => {
 
     const canUseGates = canInteract();
 
-    // Agrupar gates por tipo
-    const gatesByType = {
-        stripe: gates.filter(g => g.type === 'stripe'),
-        paypal: gates.filter(g => g.type === 'paypal'),
-        braintree: gates.filter(g => g.type === 'braintree')
+    // Agrupar gates por categoría (CHARGE o AUTH)
+    const gatesByCategory = {
+        charge: gates.filter(g => {
+            const name = g.name?.toLowerCase() || '';
+            const description = g.description?.toLowerCase() || '';
+            const type = g.type?.toLowerCase() || '';
+
+            // Buscar palabras clave en nombre, descripción o tipo
+            const isCharge = name.includes('charge') ||
+                name.includes('charged') ||
+                name.includes('payment') ||
+                description.includes('charge') ||
+                description.includes('payment') ||
+                name.includes('stripe') ||  // Stripe típicamente es CHARGE
+                type === 'stripe';
+
+            console.log(`Gate: ${g.name} - CHARGE: ${isCharge}`);
+            return isCharge;
+        }),
+        auth: gates.filter(g => {
+            const name = g.name?.toLowerCase() || '';
+            const description = g.description?.toLowerCase() || '';
+            const type = g.type?.toLowerCase() || '';
+
+            // Buscar palabras clave en nombre, descripción o tipo
+            const isAuth = name.includes('auth') ||
+                name.includes('authorization') ||
+                name.includes('cvv') ||
+                name.includes('cnn') ||
+                description.includes('auth') ||
+                name.includes('braintree') ||  // Braintree típicamente es AUTH
+                name.includes('paypal') ||     // PayPal típicamente es AUTH
+                type === 'braintree' ||
+                type === 'paypal';
+
+            console.log(`Gate: ${g.name} - AUTH: ${isAuth}`);
+            return isAuth;
+        })
     };
+
+    console.log('CHARGE Gates:', gatesByCategory.charge.length);
+    console.log('AUTH Gates:', gatesByCategory.auth.length);
 
     return (
         <DashboardLayout currentPage="gates">
@@ -345,168 +413,53 @@ const Gates = () => {
                         </motion.div>
                     </div>
 
-                    {/* Gate Selector */}
-                    <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0 }}>Seleccionar Gate</h3>
-                            {selectedGate && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: selectedGate.color, color: 'white', borderRadius: '8px', fontWeight: 600 }}>
-                                    <Shield size={18} />
-                                    {selectedGate.name}
-                                </div>
-                            )}
-                        </div>
 
-                        {loadingGates ? (
-                            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <p>Cargando gates...</p>
-                            </div>
-                        ) : gates.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <AlertCircle size={48} style={{ color: 'var(--text-tertiary)', marginBottom: '1rem' }} />
-                                <p style={{ color: 'var(--text-secondary)' }}>No hay gates disponibles. Inicializa los gates primero.</p>
-                            </div>
-                        ) : (
-                            <>
-                                {/* Stripe Gates */}
-                                {gatesByType.stripe.length > 0 && (
-                                    <div className="gate-type-section">
-                                        <div
-                                            className="gate-type-header"
-                                            onClick={() => toggleSection('stripe')}
-                                            style={{ cursor: 'pointer', userSelect: 'none' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <h3>Stripe</h3>
-                                                <span className="gate-type-count">{gatesByType.stripe.length} gates</span>
-                                            </div>
-                                            <motion.div
-                                                animate={{ rotate: collapsedSections.stripe ? -90 : 0 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                <ChevronDown size={20} />
-                                            </motion.div>
-                                        </div>
-                                        <AnimatePresence>
-                                            {!collapsedSections.stripe && (
-                                                <motion.div
-                                                    className="gates-grid"
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.3 }}
-                                                >
-                                                    {gatesByType.stripe.map(gate => (
-                                                        <GateCard
-                                                            key={gate.id}
-                                                            gate={gate}
-                                                            selected={selectedGate?.id === gate.id}
-                                                            onSelect={() => setSelectedGate(gate)}
-                                                        />
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                )}
-
-                                {/* PayPal Gates */}
-                                {gatesByType.paypal.length > 0 && (
-                                    <div className="gate-type-section">
-                                        <div
-                                            className="gate-type-header"
-                                            onClick={() => toggleSection('paypal')}
-                                            style={{ cursor: 'pointer', userSelect: 'none' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <h3>PayPal</h3>
-                                                <span className="gate-type-count">{gatesByType.paypal.length} gates</span>
-                                            </div>
-                                            <motion.div
-                                                animate={{ rotate: collapsedSections.paypal ? -90 : 0 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                <ChevronDown size={20} />
-                                            </motion.div>
-                                        </div>
-                                        <AnimatePresence>
-                                            {!collapsedSections.paypal && (
-                                                <motion.div
-                                                    className="gates-grid"
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.3 }}
-                                                >
-                                                    {gatesByType.paypal.map(gate => (
-                                                        <GateCard
-                                                            key={gate.id}
-                                                            gate={gate}
-                                                            selected={selectedGate?.id === gate.id}
-                                                            onSelect={() => setSelectedGate(gate)}
-                                                        />
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                )}
-
-                                {/* Braintree Gates */}
-                                {gatesByType.braintree.length > 0 && (
-                                    <div className="gate-type-section">
-                                        <div
-                                            className="gate-type-header"
-                                            onClick={() => toggleSection('braintree')}
-                                            style={{ cursor: 'pointer', userSelect: 'none' }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                <h3>Braintree</h3>
-                                                <span className="gate-type-count">{gatesByType.braintree.length} gates</span>
-                                            </div>
-                                            <motion.div
-                                                animate={{ rotate: collapsedSections.braintree ? -90 : 0 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                <ChevronDown size={20} />
-                                            </motion.div>
-                                        </div>
-                                        <AnimatePresence>
-                                            {!collapsedSections.braintree && (
-                                                <motion.div
-                                                    className="gates-grid"
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.3 }}
-                                                >
-                                                    {gatesByType.braintree.map(gate => (
-                                                        <GateCard
-                                                            key={gate.id}
-                                                            gate={gate}
-                                                            selected={selectedGate?.id === gate.id}
-                                                            onSelect={() => setSelectedGate(gate)}
-                                                        />
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
 
                     {/* Input Form */}
                     <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
                             <h3 style={{ margin: 0 }}>Ingresar Tarjetas</h3>
-                            {selectedGate && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: selectedGate.color, color: 'white', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
-                                    <Shield size={18} />
-                                    {selectedGate.name}
-                                </div>
-                            )}
+
+                            {/* Gate Selector Dropdown */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Gate:</label>
+                                {loadingGates ? (
+                                    <p style={{ margin: 0, fontSize: '0.9rem' }}>Cargando...</p>
+                                ) : (
+                                    <button
+                                        onClick={() => setShowGateModal(true)}
+                                        style={{
+                                            padding: '0.75rem 1.5rem',
+                                            borderRadius: '8px',
+                                            border: '2px solid var(--glass-border)',
+                                            background: selectedGate
+                                                ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))'
+                                                : 'var(--bg-secondary)',
+                                            color: 'var(--text-primary)',
+                                            fontSize: '0.9rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        {selectedGate ? (
+                                            <>
+                                                <span>{getGateIcon(selectedGate.type)}</span>
+                                                <span>{selectedGate.name}</span>
+                                                <span style={{ opacity: 0.7 }}>({selectedGate.category})</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Shield size={18} />
+                                                <span>Seleccionar Gate</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
                             Formato: <code>4557880011223344|12|26|123</code> (una por línea)
@@ -619,6 +572,343 @@ const Gates = () => {
                     )}
                 </div>
             </motion.div>
+
+            {/* Gate Selection Modal */}
+            <AnimatePresence>
+                {showGateModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowGateModal(false)}
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(0, 0, 0, 0.7)',
+                            backdropFilter: 'blur(8px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1000,
+                            padding: '2rem'
+                        }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                background: 'var(--bg-primary)',
+                                borderRadius: '16px',
+                                border: '1px solid var(--glass-border)',
+                                maxWidth: '900px',
+                                width: '100%',
+                                maxHeight: '80vh',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}
+                        >
+                            {/* Modal Header */}
+                            <div style={{
+                                padding: '1.5rem',
+                                borderBottom: '1px solid var(--glass-border)',
+                                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))'
+                            }}>
+                                <h2 style={{
+                                    margin: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    color: 'white'
+                                }}>
+                                    <Shield size={24} />
+                                    Seleccionar Gate
+                                </h2>
+                                <p style={{
+                                    margin: '0.5rem 0 0 0',
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    fontSize: '0.9rem'
+                                }}>
+                                    Elige el gate que deseas utilizar para validar tarjetas
+                                </p>
+                            </div>
+
+                            {/* Modal Content */}
+                            <div style={{
+                                padding: '1.5rem',
+                                overflowY: 'auto',
+                                flex: 1
+                            }}>
+                                {/* CHARGE Gates */}
+                                <div style={{ marginBottom: '2rem' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        marginBottom: '1rem',
+                                        padding: '0.75rem',
+                                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))',
+                                        borderRadius: '8px',
+                                        border: '1px solid rgba(16, 185, 129, 0.2)'
+                                    }}>
+                                        <CreditCard size={20} style={{ color: '#10b981' }} />
+                                        <h3 style={{ margin: 0, color: '#10b981', fontSize: '1.1rem' }}>
+                                            CHARGE Gates
+                                        </h3>
+                                        <span style={{
+                                            marginLeft: 'auto',
+                                            fontSize: '0.85rem',
+                                            color: 'var(--text-secondary)'
+                                        }}>
+                                            {gates.filter(g => g.status === 'active' && g.category === 'CHARGE').length} activos
+                                        </span>
+                                    </div>
+
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                                        gap: '1rem'
+                                    }}>
+                                        {gates
+                                            .filter(g => g.status === 'active' && g.category === 'CHARGE')
+                                            .map((gate, index) => (
+                                                <motion.div
+                                                    key={gate.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    onClick={() => {
+                                                        setSelectedGate(gate);
+                                                        setShowGateModal(false);
+                                                    }}
+                                                    style={{
+                                                        padding: '1.25rem',
+                                                        background: selectedGate?.id === gate.id
+                                                            ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))'
+                                                            : 'var(--bg-secondary)',
+                                                        border: selectedGate?.id === gate.id
+                                                            ? '2px solid #10b981'
+                                                            : '1px solid var(--glass-border)',
+                                                        borderRadius: '12px',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        position: 'relative',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                    whileHover={{
+                                                        scale: 1.02,
+                                                        boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)'
+                                                    }}
+                                                >
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.75rem',
+                                                        marginBottom: '0.75rem'
+                                                    }}>
+                                                        <span style={{ fontSize: '1.5rem' }}>
+                                                            {getGateIcon(gate.type)}
+                                                        </span>
+                                                        <div style={{ flex: 1 }}>
+                                                            <h4 style={{
+                                                                margin: 0,
+                                                                fontSize: '1rem',
+                                                                fontWeight: 600
+                                                            }}>
+                                                                {gate.name}
+                                                            </h4>
+                                                            <p style={{
+                                                                margin: '0.25rem 0 0 0',
+                                                                fontSize: '0.75rem',
+                                                                color: 'var(--text-secondary)',
+                                                                textTransform: 'uppercase',
+                                                                fontWeight: 600
+                                                            }}>
+                                                                {gate.type}
+                                                            </p>
+                                                        </div>
+                                                        {selectedGate?.id === gate.id && (
+                                                            <CheckCircle size={20} style={{ color: '#10b981' }} />
+                                                        )}
+                                                    </div>
+                                                    {gate.description && (
+                                                        <p style={{
+                                                            margin: 0,
+                                                            fontSize: '0.85rem',
+                                                            color: 'var(--text-secondary)',
+                                                            lineHeight: 1.4
+                                                        }}>
+                                                            {gate.description}
+                                                        </p>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                    </div>
+
+                                    {gates.filter(g => g.status === 'active' && g.category === 'CHARGE').length === 0 && (
+                                        <p style={{
+                                            textAlign: 'center',
+                                            color: 'var(--text-secondary)',
+                                            padding: '2rem',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            No hay gates CHARGE activos disponibles
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* AUTH Gates */}
+                                <div>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        marginBottom: '1rem',
+                                        padding: '0.75rem',
+                                        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1))',
+                                        borderRadius: '8px',
+                                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                                    }}>
+                                        <Lock size={20} style={{ color: '#3b82f6' }} />
+                                        <h3 style={{ margin: 0, color: '#3b82f6', fontSize: '1.1rem' }}>
+                                            AUTH Gates
+                                        </h3>
+                                        <span style={{
+                                            marginLeft: 'auto',
+                                            fontSize: '0.85rem',
+                                            color: 'var(--text-secondary)'
+                                        }}>
+                                            {gates.filter(g => g.status === 'active' && g.category === 'AUTH').length} activos
+                                        </span>
+                                    </div>
+
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                                        gap: '1rem'
+                                    }}>
+                                        {gates
+                                            .filter(g => g.status === 'active' && g.category === 'AUTH')
+                                            .map((gate, index) => (
+                                                <motion.div
+                                                    key={gate.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    onClick={() => {
+                                                        setSelectedGate(gate);
+                                                        setShowGateModal(false);
+                                                    }}
+                                                    style={{
+                                                        padding: '1.25rem',
+                                                        background: selectedGate?.id === gate.id
+                                                            ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2))'
+                                                            : 'var(--bg-secondary)',
+                                                        border: selectedGate?.id === gate.id
+                                                            ? '2px solid #3b82f6'
+                                                            : '1px solid var(--glass-border)',
+                                                        borderRadius: '12px',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        position: 'relative',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                    whileHover={{
+                                                        scale: 1.02,
+                                                        boxShadow: '0 8px 16px rgba(59, 130, 246, 0.2)'
+                                                    }}
+                                                >
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.75rem',
+                                                        marginBottom: '0.75rem'
+                                                    }}>
+                                                        <span style={{ fontSize: '1.5rem' }}>
+                                                            {getGateIcon(gate.type)}
+                                                        </span>
+                                                        <div style={{ flex: 1 }}>
+                                                            <h4 style={{
+                                                                margin: 0,
+                                                                fontSize: '1rem',
+                                                                fontWeight: 600
+                                                            }}>
+                                                                {gate.name}
+                                                            </h4>
+                                                            <p style={{
+                                                                margin: '0.25rem 0 0 0',
+                                                                fontSize: '0.75rem',
+                                                                color: 'var(--text-secondary)',
+                                                                textTransform: 'uppercase',
+                                                                fontWeight: 600
+                                                            }}>
+                                                                {gate.type}
+                                                            </p>
+                                                        </div>
+                                                        {selectedGate?.id === gate.id && (
+                                                            <CheckCircle size={20} style={{ color: '#3b82f6' }} />
+                                                        )}
+                                                    </div>
+                                                    {gate.description && (
+                                                        <p style={{
+                                                            margin: 0,
+                                                            fontSize: '0.85rem',
+                                                            color: 'var(--text-secondary)',
+                                                            lineHeight: 1.4
+                                                        }}>
+                                                            {gate.description}
+                                                        </p>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                    </div>
+
+                                    {gates.filter(g => g.status === 'active' && g.category === 'AUTH').length === 0 && (
+                                        <p style={{
+                                            textAlign: 'center',
+                                            color: 'var(--text-secondary)',
+                                            padding: '2rem',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            No hay gates AUTH activos disponibles
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div style={{
+                                padding: '1rem 1.5rem',
+                                borderTop: '1px solid var(--glass-border)',
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: '1rem'
+                            }}>
+                                <button
+                                    onClick={() => setShowGateModal(false)}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--glass-border)',
+                                        background: 'var(--bg-secondary)',
+                                        color: 'var(--text-primary)',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </DashboardLayout>
     );
 };

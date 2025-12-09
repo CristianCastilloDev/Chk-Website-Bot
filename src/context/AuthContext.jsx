@@ -27,9 +27,12 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            console.log('🔐 Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
             if (firebaseUser) {
                 try {
+                    console.log('📄 Fetching user document for:', firebaseUser.uid);
                     const userDoc = await getUserDocument(firebaseUser.uid);
+                    console.log('✅ User document loaded:', userDoc);
                     setUser(userDoc);
 
                     // Redirect to dashboard if on public pages
@@ -37,7 +40,7 @@ export const AuthProvider = ({ children }) => {
                         navigate('/dashboard');
                     }
                 } catch (error) {
-                    console.error('Error fetching user document:', error);
+                    console.error('❌ Error fetching user document:', error);
                     setUser(null);
                 }
             } else {

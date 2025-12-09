@@ -290,39 +290,20 @@
     margin-left: auto;
 }
 
-/* Credits Display in Header - Compact and Right Aligned */
-.header-credits {
+/* User Status Badges in Header */
+.header-badges {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
-    padding: 6px 14px;
-    background: var(--gradient-primary);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    gap: 0.75rem;
 }
 
-.credits-icon {
-    color: white;
-    flex-shrink: 0;
+.status-badge {
+    cursor: default;
 }
 
-.credits-info {
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-}
-
-.credits-amount {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: white;
-    line-height: 1;
-}
-
-.credits-label {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
+.status-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .dashboard-content {
@@ -366,13 +347,13 @@
         display: none;
     }
 
-    .header-credits {
-        padding: 5px 10px;
-        gap: 6px;
+    .header-badges {
+        gap: 0.5rem;
     }
 
-    .credits-label {
-        display: none;
+    .status-badge {
+        padding: 0.4rem 0.75rem !important;
+        font-size: 0.75rem !important;
     }
 }
 
@@ -385,12 +366,18 @@
         padding: var(--space-md);
     }
 
-    .header-credits {
-        padding: 4px 8px;
-        gap: 4px;
+    .header-badges {
+        gap: 0.4rem;
+        flex-wrap: wrap;
     }
 
-    .credits-amount {
-        font-size: 0.95rem;
+    .status-badge {
+        padding: 0.35rem 0.6rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .status-badge svg {
+        width: 14px;
+        height: 14px;
     }
 }

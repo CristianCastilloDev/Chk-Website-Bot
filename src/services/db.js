@@ -43,14 +43,32 @@ export const createUserDocument = async (uid, userData) => {
 
 export const getUserDocument = async (uid) => {
   try {
+    console.log('🔍 Getting user document for UID:', uid);
     const userRef = doc(db, 'users', uid);
+    console.log('📍 User ref path:', userRef.path);
     const userSnap = await getDoc(userRef);
+    console.log('📦 User snap exists:', userSnap.exists());
+
     if (userSnap.exists()) {
-      return { id: userSnap.id, ...userSnap.data() };
+      const rawData = userSnap.data();
+      console.log('🔬 Raw data from Firestore:', rawData);
+      console.log('🔬 Raw data keys:', Object.keys(rawData));
+
+      const userData = {
+        id: userSnap.id,
+        ...rawData,
+        // Ensure timestamps are properly converted
+        createdAt: rawData.createdAt,
+        updatedAt: rawData.updatedAt,
+        planExpiresAt: rawData.planExpiresAt
+      };
+      console.log('✅ User data retrieved:', userData);
+      return userData;
     }
+    console.warn('⚠️ User document does not exist for UID:', uid);
     return null;
   } catch (error) {
-    console.error('Error getting user document:', error);
+    console.error('❌ Error getting user document:', error);
     throw error;
   }
 };
@@ -512,14 +530,21 @@ export const validateUsername = (username) => {
 
 export const getUserByUsername = async (username) => {
   try {
+    console.log('🔍 Searching for username:', username);
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('username', '==', username));
     const usersSnap = await getDocs(q);
-    if (usersSnap.empty) return null;
+    console.log('📊 Query results:', usersSnap.size, 'documents found');
+    if (usersSnap.empty) {
+      console.warn('⚠️ No user found with username:', username);
+      return null;
+    }
     const userDoc = usersSnap.docs[0];
-    return { id: userDoc.id, ...userDoc.data() };
+    const userData = { id: userDoc.id, ...userDoc.data() };
+    console.log('✅ User found by username:', userData);
+    return userData;
   } catch (error) {
-    console.error('Error getting user by username:', error);
+    console.error('❌ Error getting user by username:', error);
     throw error;
   }
 };

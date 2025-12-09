@@ -22,9 +22,9 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Initialize analytics (optional)
+// Initialize analytics (only in production)
 let analytics = null;
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
     analytics = getAnalytics(app);
 }
 
