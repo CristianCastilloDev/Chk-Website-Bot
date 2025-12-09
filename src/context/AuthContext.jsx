@@ -6,7 +6,7 @@ import {
     onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../services/firebase';
-import { createUserDocument, getUserDocument, getUserByUsername } from '../services/db';
+import { createUserDocument, getUserDocument, getUserByUsername, updateUserDocument } from '../services/db';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 
 const AuthContext = createContext();
@@ -33,6 +33,13 @@ export const AuthProvider = ({ children }) => {
                     console.log('📄 Fetching user document for:', firebaseUser.uid);
                     const userDoc = await getUserDocument(firebaseUser.uid);
                     console.log('✅ User document loaded:', userDoc);
+
+                    // Update lastLogin timestamp
+                    await updateUserDocument(firebaseUser.uid, {
+                        lastLogin: new Date()
+                    });
+                    console.log('⏰ Updated lastLogin timestamp');
+
                     setUser(userDoc);
 
                     // Redirect to dashboard if on public pages
@@ -116,7 +123,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Role checking functions
-    const isAdmin = () => user?.role === 'admin';
+    const isAdmin = () => user?.role === 'admin' || user?.role === 'dev';
     const isDev = () => user?.role === 'dev';
     const isFree = () => user?.role === 'free';
     const isPremium = () => user?.role === 'premium';

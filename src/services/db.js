@@ -354,7 +354,7 @@ export const createSaleRecord = async (saleData) => {
   }
 };
 
-export const addCreditsToUser = async (userId, creditsToAdd, adminId, adminName) => {
+export const addCreditsToUser = async (userId, creditsToAdd, adminId, adminName, amount = 0) => {
   try {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
@@ -374,7 +374,8 @@ export const addCreditsToUser = async (userId, creditsToAdd, adminId, adminName)
       type: 'credits',
       creditsAdded: creditsToAdd,
       previousBalance,
-      newBalance
+      newBalance,
+      amount: amount
     });
     return true;
   } catch (error) {
@@ -383,7 +384,7 @@ export const addCreditsToUser = async (userId, creditsToAdd, adminId, adminName)
   }
 };
 
-export const addPlanToUser = async (userId, planDuration, adminId, adminName) => {
+export const addPlanToUser = async (userId, planDuration, adminId, adminName, amount = 0) => {
   try {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
@@ -414,7 +415,8 @@ export const addPlanToUser = async (userId, planDuration, adminId, adminName) =>
       previousBalance: userData.credits || 0,
       newBalance: userData.credits || 0,
       previousPlan: userData.plan || 'Free',
-      newPlan: planName
+      newPlan: planName,
+      amount: amount
     });
     return true;
   } catch (error) {
@@ -527,6 +529,7 @@ export const validateUsername = (username) => {
   const usernameRegex = /^[a-zA-Z0-9_]+$/;
   return usernameRegex.test(username);
 };
+
 
 export const getUserByUsername = async (username) => {
   try {

@@ -35,7 +35,33 @@ const Users = () => {
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesRole = filterRole === 'all' || user.role === filterRole;
+
+        // Custom filter logic
+        let matchesRole = true;
+
+        if (filterRole === 'all') {
+            matchesRole = true;
+        } else if (filterRole === 'premium') {
+            // Premium: usuarios con plan activo
+            const remainingDays = user.planExpiresAt
+                ? Math.max(0, Math.ceil((user.planExpiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24)))
+                : 0;
+            matchesRole = remainingDays > 0 && user.role !== 'admin' && user.role !== 'dev';
+        } else if (filterRole === 'miembro') {
+            // Miembros: usuarios sin plan activo (free)
+            const remainingDays = user.planExpiresAt
+                ? Math.max(0, Math.ceil((user.planExpiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24)))
+                : 0;
+            matchesRole = (remainingDays === 0 || !user.planExpiresAt) && user.role !== 'admin' && user.role !== 'dev';
+        } else if (filterRole === 'expired') {
+            // Planes expirados: usuarios que tuvieron plan pero ya expiró
+            const hasExpiredPlan = user.planExpiresAt && user.planExpiresAt.toDate() < new Date();
+            matchesRole = hasExpiredPlan;
+        } else {
+            // Admin o Dev
+            matchesRole = user.role === filterRole;
+        }
+
         return matchesSearch && matchesRole;
     });
 
@@ -159,9 +185,9 @@ const Users = () => {
                     <div className="role-filter">
                         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
                             <option value="all">Todos los Roles</option>
-                            <option value="free">Free</option>
                             <option value="premium">Premium</option>
-                            <option value="pro">Pro</option>
+                            <option value="miembro">Miembros</option>
+                            <option value="expired">Planes Expirados</option>
                             <option value="admin">Administradores</option>
                             <option value="dev">Developers</option>
                         </select>

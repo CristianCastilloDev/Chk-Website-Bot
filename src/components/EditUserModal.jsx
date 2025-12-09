@@ -10,11 +10,28 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
     const [creditsToAdd, setCreditsToAdd] = useState(0);
     const [role, setRole] = useState(user?.role || 'free');
     const [planDuration, setPlanDuration] = useState(30);
+    const [creditPrice, setCreditPrice] = useState(0);
+    const [planPrice, setPlanPrice] = useState(0);
     const [loading, setLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [actionType, setActionType] = useState(''); // 'credits', 'plan', or 'role'
+
+    // Precios sugeridos
+    const suggestedPrices = {
+        credits: {
+            100: 50,
+            500: 200,
+            1000: 350
+        },
+        plan: {
+            1: 20,
+            7: 100,
+            15: 180,
+            30: 300
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -31,14 +48,20 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
             return;
         }
 
+        if (creditPrice <= 0) {
+            setError('Por favor ingresa un precio válido');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setSuccessMessage('');
 
         try {
-            await addCreditsToUser(user.id, creditsToAdd, currentUser.id, currentUser.name);
-            setSuccessMessage(`✅ ${creditsToAdd} créditos agregados exitosamente`);
+            await addCreditsToUser(user.id, creditsToAdd, currentUser.id, currentUser.name, creditPrice);
+            setSuccessMessage(`✅ ${creditsToAdd} créditos vendidos por $${creditPrice}`);
             setCreditsToAdd(0);
+            setCreditPrice(0);
             setTimeout(() => {
                 setSuccessMessage('');
                 onSave();
@@ -58,14 +81,20 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
             return;
         }
 
+        if (planPrice <= 0) {
+            setError('Por favor ingresa un precio válido');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setSuccessMessage('');
 
         try {
-            await addPlanToUser(user.id, planDuration, currentUser.id, currentUser.name);
+            await addPlanToUser(user.id, planDuration, currentUser.id, currentUser.name, planPrice);
             const planName = planDuration === 1 ? 'Plan Diario' : planDuration === 7 ? 'Plan Semanal' : planDuration === 15 ? 'Plan Quincenal' : 'Plan Mensual';
-            setSuccessMessage(`✅ ${planName} agregado exitosamente`);
+            setSuccessMessage(`✅ ${planName} vendido por $${planPrice}`);
+            setPlanPrice(0);
             setTimeout(() => {
                 setSuccessMessage('');
                 onSave();
@@ -269,24 +298,40 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
                                                 Agregar Créditos
                                             </label>
                                             <div className="credits-add-section">
+                                                <select
+                                                    value={creditsToAdd}
+                                                    onChange={(e) => {
+                                                        const value = parseInt(e.target.value);
+                                                        setCreditsToAdd(value);
+                                                        setCreditPrice(suggestedPrices.credits[value] || 0);
+                                                    }}
+                                                    className="credits-input"
+                                                >
+                                                    <option value={0}>Seleccionar...</option>
+                                                    <option value={100}>100 Créditos</option>
+                                                    <option value={500}>500 Créditos</option>
+                                                    <option value={1000}>1000 Créditos</option>
+                                                </select>
+                                            </div>
+                                            <div className="credits-add-section" style={{ marginTop: '0.5rem' }}>
                                                 <input
                                                     type="number"
-                                                    value={creditsToAdd}
-                                                    onChange={(e) => setCreditsToAdd(parseInt(e.target.value) || 0)}
+                                                    value={creditPrice}
+                                                    onChange={(e) => setCreditPrice(parseInt(e.target.value) || 0)}
                                                     className="credits-input"
-                                                    placeholder="Cantidad"
+                                                    placeholder="Precio ($)"
                                                     min="0"
                                                 />
                                                 <button
                                                     className="btn-primary"
                                                     onClick={handleAddCredits}
-                                                    disabled={loading || creditsToAdd <= 0}
+                                                    disabled={loading || creditsToAdd <= 0 || creditPrice <= 0}
                                                 >
                                                     <Plus size={18} />
-                                                    Agregar
+                                                    Vender ${creditPrice}
                                                 </button>
                                             </div>
-                                            <small>Los créditos se sumarán al saldo actual</small>
+                                            <small>Precio sugerido: ${suggestedPrices.credits[creditsToAdd] || 0}</small>
                                         </div>
 
                                         {/* Add Plan */}
@@ -298,42 +343,65 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
                                             <div className="plan-duration-grid">
                                                 <button
                                                     className={`duration-option ${planDuration === 1 ? 'active' : ''}`}
-                                                    onClick={() => setPlanDuration(1)}
+                                                    onClick={() => {
+                                                        setPlanDuration(1);
+                                                        setPlanPrice(suggestedPrices.plan[1]);
+                                                    }}
                                                 >
                                                     Básico
                                                     <span>1 Día</span>
                                                 </button>
                                                 <button
                                                     className={`duration-option ${planDuration === 7 ? 'active' : ''}`}
-                                                    onClick={() => setPlanDuration(7)}
+                                                    onClick={() => {
+                                                        setPlanDuration(7);
+                                                        setPlanPrice(suggestedPrices.plan[7]);
+                                                    }}
                                                 >
                                                     Semanal
                                                     <span>7 Días</span>
                                                 </button>
                                                 <button
                                                     className={`duration-option ${planDuration === 15 ? 'active' : ''}`}
-                                                    onClick={() => setPlanDuration(15)}
+                                                    onClick={() => {
+                                                        setPlanDuration(15);
+                                                        setPlanPrice(suggestedPrices.plan[15]);
+                                                    }}
                                                 >
                                                     Quincenal
                                                     <span>15 Días</span>
                                                 </button>
                                                 <button
                                                     className={`duration-option ${planDuration === 30 ? 'active' : ''}`}
-                                                    onClick={() => setPlanDuration(30)}
+                                                    onClick={() => {
+                                                        setPlanDuration(30);
+                                                        setPlanPrice(suggestedPrices.plan[30]);
+                                                    }}
                                                 >
                                                     Mensual
                                                     <span>30 Días</span>
                                                 </button>
                                             </div>
+                                            <div className="credits-add-section" style={{ marginTop: '0.5rem' }}>
+                                                <input
+                                                    type="number"
+                                                    value={planPrice}
+                                                    onChange={(e) => setPlanPrice(parseInt(e.target.value) || 0)}
+                                                    className="credits-input"
+                                                    placeholder="Precio ($)"
+                                                    min="0"
+                                                />
+                                            </div>
                                             <button
                                                 className="btn-primary"
                                                 onClick={handleAddPlan}
-                                                disabled={loading}
+                                                disabled={loading || planPrice <= 0}
+                                                style={{ marginTop: '0.5rem' }}
                                             >
                                                 <Plus size={18} />
-                                                Agregar {planDuration === 1 ? 'Día' : planDuration === 7 ? 'Semana' : planDuration === 15 ? 'Quincena' : 'Mes'}
+                                                Vender por ${planPrice}
                                             </button>
-                                            <small>El tiempo se agregará a la fecha de expiración actual</small>
+                                            <small>Precio sugerido: ${suggestedPrices.plan[planDuration] || 0}</small>
                                         </div>
                                     </div>
                                 )}
