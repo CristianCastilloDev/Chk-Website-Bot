@@ -843,12 +843,41 @@ const fetchBinDataFromAPI = async (bin) => {
   }
 };
 
-export const getBinStats = async () => {
+export const getBinStats = async (period = 'all') => {
   try {
+    // Calcular fecha de inicio según el período
+    let startDate = null;
+    const now = new Date();
+    
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+      default:
+        startDate = null; // Sin filtro
+        break;
+    }
+
     // Obtener todas las lives
     const livesRef = collection(db, 'lives');
     const livesSnapshot = await getDocs(livesRef);
-    const lives = livesSnapshot.docs.map(doc => doc.data());
+    let lives = livesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Filtrar por fecha si es necesario
+    if (startDate) {
+      lives = lives.filter(live => {
+        if (!live.createdAt) return false;
+        const liveDate = live.createdAt.toDate ? live.createdAt.toDate() : new Date(live.createdAt);
+        return liveDate >= startDate;
+      });
+    }
 
     // Obtener información de BINs únicos desde la API
     const uniqueBins = [...new Set(lives.map(live => live.bin).filter(Boolean))];

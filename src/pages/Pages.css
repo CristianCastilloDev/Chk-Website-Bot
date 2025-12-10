@@ -5,747 +5,795 @@
 /* ==================== ENCABEZADO DE PÁGINA ==================== */
 /* Contenedor principal del encabezado de cada página */
 .page-header {
-    margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-xl);
 }
 
 /* Título principal del encabezado (h1) */
 .page-header h1 {
-    margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-sm);
 }
 
 /* Descripción/subtítulo del encabezado */
 .page-header p {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
 /* ==================== GRID DE ESTADÍSTICAS ==================== */
 /* Grid responsivo para tarjetas de estadísticas */
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-lg);
-    margin-bottom: var(--space-xl);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 /* Tarjeta individual de estadística */
 .stat-card {
-    padding: var(--space-lg);
-    border-radius: var(--radius-lg);
-    transition: all var(--transition-base);
-    opacity: 1 !important;
-    visibility: visible !important;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* Encabezado de la tarjeta de estadística (icono + cambio) */
 .stat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-md);
-    opacity: 1 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  opacity: 1 !important;
 }
 
 /* Icono circular de la estadística */
 .stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white !important;
-    opacity: 1 !important;
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white !important;
+  opacity: 1 !important;
 }
 
 /* Badge de cambio porcentual (ej: +12.5%) */
 .stat-change {
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--radius-sm);
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success) !important;
-    opacity: 1 !important;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success) !important;
+  opacity: 1 !important;
 }
 
 /* Contenido de la estadística */
 .stat-content {
-    color: var(--text-primary) !important;
-    opacity: 1 !important;
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
 }
 
 /* Valor numérico principal de la estadística */
 .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: var(--space-xs);
-    color: var(--text-primary) !important;
-    opacity: 1 !important;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
 }
 
 /* Etiqueta descriptiva de la estadística */
 .stat-label {
-    color: var(--text-secondary) !important;
-    font-size: 0.9rem;
-    opacity: 1 !important;
+  color: var(--text-secondary) !important;
+  font-size: 0.9rem;
+  opacity: 1 !important;
 }
 
 /* ==================== SECCIÓN DE BIENVENIDA ==================== */
 /* Contenedor de la sección de bienvenida */
 .welcome-section {
-    padding: var(--space-xl);
-    border-radius: var(--radius-lg);
-    margin-top: var(--space-xl);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-xl);
 }
 
 /* Título de la sección de bienvenida */
 .welcome-content h2 {
-    margin-bottom: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 /* Texto descriptivo de la sección de bienvenida */
 .welcome-content p {
-    font-size: 1.05rem;
-    line-height: 1.7;
+  font-size: 1.05rem;
+  line-height: 1.7;
 }
 
 /* ==================== GRID DE GRÁFICAS ==================== */
 /* Grid responsivo para gráficas */
 .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: var(--space-lg);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-lg);
 }
 
 /* Tarjeta contenedora de gráfica */
 .chart-card {
-    padding: var(--space-lg);
-    border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
 }
 
 /* Título de la gráfica */
 .chart-card h3 {
-    margin-bottom: var(--space-lg);
-    color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  color: var(--text-primary);
 }
 
 /* ==================== ESTADO DE CARGA ==================== */
 /* Contenedor de estado de carga (spinner/skeleton) */
 .loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    gap: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--space-lg);
 }
 
 /* ==================== FILTROS DE USUARIOS ==================== */
 /* Contenedor de filtros (búsqueda + rol) */
 .users-filters {
-    display: flex;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-    padding: var(--space-md);
-    border-radius: var(--radius-lg);
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
 }
 
 /* Caja de búsqueda con icono */
 .search-box {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
 }
 
 /* Input de búsqueda */
 .search-box input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 5px;
-    color: var(--text-primary);
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 5px;
+  color: var(--text-primary);
 }
 
 /* Input de búsqueda en focus */
 .search-box input:focus {
-    outline: none;
-    box-shadow: none;
+  outline: none;
+  box-shadow: none;
 }
 
 /* Select de filtro por rol */
 .role-filter select {
-    padding: 1rem 1.5rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    cursor: pointer;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
 }
 
 /* ==================== CELDAS DE TABLA ==================== */
 /* Celda genérica de tabla */
 .table-cell {
-    display: flex;
-    align-items: center;
-    color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
 }
 
 /* Celda de usuario (avatar + nombre) */
 .user-cell {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
 /* Avatar pequeño circular del usuario */
 .user-avatar-small {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 0.85rem;
-    flex-shrink: 0;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 /* Texto del nombre de usuario */
 .user-name-text {
-    font-weight: 500;
-    color: var(--text-primary);
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 /* Celda de email con icono */
 .email-cell {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 /* Celda de créditos con icono de moneda */
 .credits-cell {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    color: var(--accent);
-    font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Celda de fecha con icono de calendario */
 .date-cell {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.9rem;
 }
 
 /* ==================== BADGES DE ROL ==================== */
 /* Badge base de rol de usuario */
 .role-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: var(--space-xs) var(--space-md);
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 
 /* Badge de rol Admin (primera definición - gradiente) */
 .role-badge.admin {
-    background: var(--gradient-primary);
-    color: white;
+  background: var(--gradient-primary);
+  color: white;
 }
 
 /* Badge de rol Client */
 .role-badge.client {
-    background: rgba(6, 182, 212, 0.1);
-    color: var(--accent);
-    border: 1px solid var(--accent);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 /* Badge de rol Pro */
 .role-badge.pro {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
-    border: 1px solid #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  border: 1px solid #8b5cf6;
 }
 
 /* Badge de rol Admin (segunda definición - naranja) */
 .role-badge.admin {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-    border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
 }
 
 /* Badge de rol Dev (verde) */
 .role-badge.dev {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid #10b981;
 }
 
 /* Badges de roles básicos (free, usuario, miembro) */
 .role-badge.free,
 .role-badge.usuario,
 .role-badge.miembro {
-    background: rgba(107, 114, 128, 0.1);
-    color: #6b7280;
-    border: 1px solid #6b7280;
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  border: 1px solid #6b7280;
 }
 
 /* ==================== BADGE DE PLAN ==================== */
 /* Badge de plan de suscripción */
 .plan-badge {
-    padding: var(--space-xs) var(--space-sm);
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-primary);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* ==================== ESTADO VACÍO ==================== */
 /* Mensaje cuando no hay datos para mostrar */
 .empty-state {
-    padding: var(--space-2xl);
-    text-align: center;
-    border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+  border-radius: var(--radius-lg);
 }
 
 /* ==================== CONFIGURACIONES ==================== */
 /* Contenedor principal de configuraciones */
 .settings-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-    max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  max-width: 800px;
 }
 
 /* Tarjeta de sección de configuración */
 .settings-card {
-    padding: var(--space-xl);
-    border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
 }
 
 /* Título de tarjeta de configuración con borde inferior */
 .settings-card h3 {
-    margin-bottom: var(--space-lg);
-    padding-bottom: var(--space-md);
-    border-bottom: 1px solid var(--glass-border);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 /* Formulario de configuraciones */
 .settings-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 /* Botón primario en formulario de configuraciones */
 .settings-form .btn-primary {
-    align-self: flex-start;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 /* Mensaje de éxito */
 .success-message {
-    padding: var(--space-md);
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid var(--success);
+  padding: var(--space-md);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--success);
 }
 
 /* Label de checkbox con padding reducido */
 .checkbox-label {
-    padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm) var(--space-md);
 }
 
 /* ==================== BOTONES DE ACCIÓN ==================== */
 /* Botón de editar usuario */
 .edit-user-btn {
-    padding: var(--space-sm);
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: var(--space-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Hover del botón de editar usuario */
 .edit-user-btn:hover {
-    background: var(--primary);
+  background: var(--primary);
 }
 
 /* Contenedor de botones de acción */
 .action-buttons {
-    display: flex;
-    gap: var(--space-sm);
-    align-items: center;
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
 }
 
 /* Botón de detalle de usuario */
 .detail-user-btn {
-    padding: var(--space-sm);
-    background: var(--bg-secondary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: var(--space-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Hover del botón de detalle con elevación */
 .detail-user-btn:hover {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-    transform: translateY(-2px);
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
 }
 
 /* ==================== TABLA DE VENTAS ==================== */
 /* Contenedor de tabla de ventas con scroll horizontal */
 .sales-table {
-    overflow-x: auto;
+  overflow-x: auto;
 }
 
 /* Encabezado de tabla de ventas con 7 columnas */
 .sales-table .table-header {
-    display: grid;
-    grid-template-columns: 1.2fr 1.2fr 1fr 1.5fr 1fr 1fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-md) var(--space-lg);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr 1.5fr 1fr 1fr 1.5fr;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 /* Fila de tabla de ventas */
 .sales-table .table-row {
-    display: grid;
-    grid-template-columns: 1.2fr 1.2fr 1fr 1.5fr 1fr 1fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    border-bottom: 1px solid var(--glass-border);
-    transition: all var(--transition-fast);
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr 1.5fr 1fr 1fr 1.5fr;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--glass-border);
+  transition: all var(--transition-fast);
 }
 
 /* ==================== BADGES DE TIPO DE VENTA ==================== */
 /* Badge base de tipo de transacción */
 .type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-xs);
-    padding: 4px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* Badge de tipo "créditos" (verde) */
 .type-badge.credits {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border: 1px solid #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid #10b981;
 }
 
 /* Badge de tipo "plan" (morado) */
 .type-badge.plan {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
-    border: 1px solid #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  border: 1px solid #8b5cf6;
 }
 
 /* ==================== VALORES DE DETALLE ==================== */
 /* Valor de detalle destacado */
 .detail-value {
-    color: var(--text-primary);
-    font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Valor de balance (anterior) */
 .balance-value {
-    color: var(--text-secondary);
-    font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 /* Valor de balance nuevo (destacado) */
 .balance-value.new {
-    color: var(--primary);
-    font-weight: 700;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 /* ==================== NOMBRE DE USUARIO INTERACTIVO ==================== */
 /* Nombre de usuario con hover en tabla de ventas */
 .username-hover {
-    color: var(--primary);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-base);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    display: inline-block;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
 }
 
 /* Hover del nombre de usuario con fondo y elevación */
 .username-hover:hover {
-    background: rgba(99, 102, 241, 0.1);
-    transform: translateY(-1px);
+  background: rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
 }
 
 /* ==================== ADVERTENCIA DE PERMISOS ==================== */
 /* Contenedor de advertencia de permisos insuficientes */
 .permission-warning {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    margin-bottom: var(--space-lg);
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: var(--radius-lg);
-    color: #f59e0b;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-lg);
+  color: #f59e0b;
 }
 
 /* Icono de advertencia (no se encoge) */
 .permission-warning svg {
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 /* Título de advertencia */
 .permission-warning h3 {
-    margin: 0 0 var(--space-xs) 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-primary);
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* Texto de advertencia */
 .permission-warning p {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.5;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 /* Enlaces en advertencia */
 .permission-warning a {
-    color: var(--primary);
-    text-decoration: underline;
-    font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 600;
 }
 
 /* Hover de enlaces en advertencia */
 .permission-warning a:hover {
-    color: var(--primary-hover);
+  color: var(--primary-hover);
 }
 
 /* ==================== CONTENIDO DESHABILITADO ==================== */
 /* Contenido deshabilitado con blur y sin interacción */
 .gates-content.disabled,
 .herramientas-content.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-    filter: blur(2px);
-    user-select: none;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: blur(2px);
+  user-select: none;
 }
 
 /* ==================== CELDAS DE DÍAS ==================== */
 /* Celda de días restantes de plan */
 .days-cell {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.9rem;
 }
 
 /* Días activos (verde) */
 .days-active {
-    color: var(--success);
-    font-weight: 600;
+  color: var(--success);
+  font-weight: 600;
 }
 
 /* Días expirados (rojo) */
 .days-expired {
-    color: var(--error);
-    font-weight: 600;
+  color: var(--error);
+  font-weight: 600;
 }
 
 /* Sin días (gris, itálica) */
 .days-none {
-    color: var(--text-tertiary);
-    font-style: italic;
+  color: var(--text-tertiary);
+  font-style: italic;
 }
 
 /* ==================== TABLA DE USUARIOS ==================== */
 /* Contenedor de tabla de usuarios */
 .users-table {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
 }
 
 /* Encabezado de tabla de usuarios con 7 columnas */
 .users-table .table-header {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-primary);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Cuerpo de tabla de usuarios */
 .users-table .table-body {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Fila de tabla de usuarios */
 .users-table .table-row {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    border-bottom: 1px solid var(--glass-border);
-    transition: all 0.2s ease;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--glass-border);
+  transition: all 0.2s ease;
 }
 
 /* Zebra striping sutil */
 .users-table .table-row:nth-child(even) {
-    background: rgba(0, 0, 0, 0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 [data-theme="light"] .users-table .table-row:nth-child(even) {
-    background: rgba(0, 0, 0, 0.01);
+  background: rgba(0, 0, 0, 0.01);
 }
 
 /* Hover effect mejorado */
 .users-table .table-row:hover {
-    background: rgba(99, 102, 241, 0.05);
-    transform: translateX(4px);
-    box-shadow: -4px 0 0 var(--primary);
-    cursor: pointer;
+  background: rgba(99, 102, 241, 0.05);
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--primary);
+  cursor: pointer;
 }
 
 /* Última fila sin borde inferior */
 .users-table .table-row:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 /* Mejoras generales para todas las tablas */
 .table-row {
-    transition: all 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .table-row:hover {
-    background: rgba(99, 102, 241, 0.05);
-    transform: translateX(4px);
-    box-shadow: -4px 0 0 var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--primary);
 }
 
 /* Sticky header para tablas generales */
 .table-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* ==================== ICONOS DE ESTADO DE GATES ==================== */
 /* Icono de estado "Live" (verde) */
 .status-icon-live {
-    color: #10b981;
+  color: #10b981;
 }
 
 /* Icono de estado "Warning" (naranja) */
 .status-icon-warning {
-    color: #f59e0b;
+  color: #f59e0b;
 }
 
 /* Icono de estado "Dead" (rojo) */
 .status-icon-dead {
-    color: #ef4444;
+  color: #ef4444;
 }
 
 /* Icono de estado "Error" (gris) */
 .status-icon-error {
-    color: #6b7280;
+  color: #6b7280;
 }
 
 /* ==================== RESPONSIVE DESIGN ==================== */
 /* Tablets y dispositivos medianos (max-width: 768px) */
 @media (max-width: 768px) {
+  /* Grid de estadísticas en una columna */
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 
-    /* Grid de estadísticas en una columna */
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+  /* Ocultar encabezado de tabla en móvil */
+  .table-header {
+    display: none;
+  }
 
-    /* Ocultar encabezado de tabla en móvil */
-    .table-header {
-        display: none;
-    }
+  /* Filas de tabla en una columna */
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
 
-    /* Filas de tabla en una columna */
-    .table-row {
-        grid-template-columns: 1fr;
-        gap: var(--space-sm);
-        padding: var(--space-md);
-    }
+  /* Celdas alineadas a la izquierda */
+  .table-cell {
+    justify-content: flex-start;
+  }
 
-    /* Celdas alineadas a la izquierda */
-    .table-cell {
-        justify-content: flex-start;
-    }
+  /* Celda de usuario con margen inferior */
+  .user-cell {
+    margin-bottom: var(--space-sm);
+  }
 
-    /* Celda de usuario con margen inferior */
-    .user-cell {
-        margin-bottom: var(--space-sm);
-    }
-
-    /* Filtros en columna en móvil */
-    .users-filters {
-        flex-direction: column;
-    }
+  /* Filtros en columna en móvil */
+  .users-filters {
+    flex-direction: column;
+  }
 }
 
 /* Móviles pequeños (max-width: 480px) */
 @media (max-width: 480px) {
+  /* Título de página más pequeño */
+  .page-header h1 {
+    font-size: 1.75rem;
+  }
 
-    /* Título de página más pequeño */
-    .page-header h1 {
-        font-size: 1.75rem;
-    }
+  /* Valor de estadística más pequeño */
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
 
-    /* Valor de estadística más pequeño */
-    .stat-value {
-        font-size: 1.5rem;
-    }
+/* ==================== TREMOR CUSTOM STYLES ==================== */
+/* Estilos personalizados para componentes de Tremor */
+
+.tremor-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  padding: 1.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.tremor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}
+
+/* Tremor Title styling */
+.tremor-card .tremor-Title-root {
+  color: var(--text-primary) !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Tremor Chart styling */
+.tremor-card .tremor-BarChart-root,
+.tremor-card .tremor-DonutChart-root {
+  color: var(--text-primary) !important;
+}
+
+/* Tremor Axis labels */
+.tremor-card text {
+  fill: var(--text-secondary) !important;
+  font-size: 0.875rem !important;
+}
+
+/* Tremor Tooltip */
+.tremor-Tooltip-root {
+  background: rgba(30, 30, 46, 0.95) !important;
+  border: 2px solid rgba(139, 92, 246, 0.6) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.tremor-Tooltip-root .tremor-Text-root {
+  color: #ffffff !important;
 }
