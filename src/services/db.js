@@ -850,6 +850,9 @@ export const getBinStats = async (period = 'all') => {
     const now = new Date();
     
     switch (period) {
+      case 'today':
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        break;
       case 'week':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
@@ -870,13 +873,51 @@ export const getBinStats = async (period = 'all') => {
     const livesSnapshot = await getDocs(livesRef);
     let lives = livesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+    console.log(`📊 Total lives antes de filtrar: ${lives.length}`);
+    console.log(`📅 Período seleccionado: ${period}`);
+    console.log(`🕐 Fecha de inicio: ${startDate}`);
+
     // Filtrar por fecha si es necesario
     if (startDate) {
+      const originalCount = lives.length;
       lives = lives.filter(live => {
-        if (!live.createdAt) return false;
-        const liveDate = live.createdAt.toDate ? live.createdAt.toDate() : new Date(live.createdAt);
-        return liveDate >= startDate;
+        // Verificar si tiene campo de fecha (createdAt, timestamp, date, etc.)
+        const dateField = live.createdAt || live.timestamp || live.date || live.created;
+        
+        if (!dateField) {
+          console.warn('Live sin fecha:', live.id);
+          return false; // Excluir lives sin fecha cuando hay filtro
+        }
+
+        try {
+          // Convertir a Date según el tipo
+          let liveDate;
+          if (dateField.toDate) {
+            // Firestore Timestamp
+            liveDate = dateField.toDate();
+          } else if (dateField.seconds) {
+            // Timestamp object
+            liveDate = new Date(dateField.seconds * 1000);
+          } else if (typeof dateField === 'string') {
+            // String ISO
+            liveDate = new Date(dateField);
+          } else if (dateField instanceof Date) {
+            // Ya es Date
+            liveDate = dateField;
+          } else {
+            console.warn('Formato de fecha desconocido:', dateField);
+            return false;
+          }
+
+          const isInRange = liveDate >= startDate;
+          return isInRange;
+        } catch (error) {
+          console.error('Error procesando fecha:', error, dateField);
+          return false;
+        }
       });
+      
+      console.log(`✅ Lives después de filtrar: ${lives.length} (filtrados: ${originalCount - lives.length})`);
     }
 
     // Obtener información de BINs únicos desde la API
@@ -1019,3 +1060,528 @@ export const getBinStats = async (period = 'all') => {
     };
   }
 };
+
+// ========== TEST DATA GENERATION ==========
+
+const SAMPLE_BINS = [
+  '411111', '424242', '450000', '476173', '483312',
+  '510510', '555555', '540000', '543210', '557039',
+  '371449', '378282', '378734', '340000', '341111',
+  '456789', '491234', '465432', '478901', '482345',
+  '512345', '523456', '534567', '545678', '556789',
+  '461234', '472345', '483456', '494567', '405678',
+  '517890', '528901', '539012', '540123', '551234',
+  '467890', '478901', '489012', '490123', '401234',
+  '518901', '529012', '530123', '541234', '552345',
+  '462345', '473456', '484567', '495678', '406789',
+  '513456', '524567', '535678', '546789', '557890'
+];
+
+export const generateTestLives = async (count = 100) => {
+  try {
+    console.log(`🚀 Generando ${count} lives de prueba...`);
+    
+    // Obtener gates existentes
+    const gatesSnapshot = await getDocs(collection(db, 'gates'));
+    const gates = gatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if (gates.length === 0) {
+      console.error('❌ No hay gates disponibles.');
+      return;
+    }
+    
+    console.log(`✅ Encontrados ${gates.length} gates`);
+    
+    const createdLives = [];
+    
+    for (let i = 0; i < count; i++) {
+      const randomGate = gates[Math.floor(Math.random() * gates.length)];
+      const randomBin = SAMPLE_BINS[Math.floor(Math.random() * SAMPLE_BINS.length)];
+      
+      // Fecha aleatoria en los últimos 6 meses
+      const now = new Date();
+      const sixMonthsAgo = new Date(now.getTime() - (180 * 24 * 60 * 60 * 1000));
+      const randomTime = sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime());
+      
+      const liveData = {
+        bin: randomBin,
+        gateId: randomGate.id,
+        gateName: randomGate.name || 'Test Gate',
+        createdAt: Timestamp.fromDate(new Date(randomTime)),
+        userId: 'test-user-' + Math.floor(Math.random() * 10),
+        cardNumber: randomBin + '********' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
+        status: 'approved'
+      };
+      
+      const liveRef = doc(collection(db, 'lives'));
+      await setDoc(liveRef, liveData);
+      createdLives.push({ id: liveRef.id, ...liveData });
+      
+      if ((i + 1) % 10 === 0) {
+        console.log(`📊 Progreso: ${i + 1}/${count} lives creadas`);
+      }
+    }
+    
+    console.log(`✅ ¡Completado! Se crearon ${createdLives.length} lives de prueba`);
+    console.log('🏦 BINs únicos:', [...new Set(createdLives.map(l => l.bin))].length);
+    console.log('🚪 Gates únicos:', [...new Set(createdLives.map(l => l.gateId))].length);
+    
+    return createdLives;
+  } catch (error) {
+    console.error('❌ Error generando lives:', error);
+    throw error;
+  }
+};
+
+export const deleteAllTestLives = async () => {
+  try {
+    console.log('🗑️ Eliminando todas las lives...');
+    
+    const livesSnapshot = await getDocs(collection(db, 'lives'));
+    const deletions = [];
+    
+    const { deleteDoc } = await import('firebase/firestore');
+    
+    for (const docSnap of livesSnapshot.docs) {
+      deletions.push(deleteDoc(docSnap.ref));
+    }
+    
+    await Promise.all(deletions);
+    console.log(`✅ Eliminadas ${deletions.length} lives`);
+  } catch (error) {
+    console.error('❌ Error eliminando lives:', error);
+    throw error;
+  }
+};
+
+// ========== ANALYTICS FUNCTIONS ==========
+
+/**
+ * Obtener estadísticas de Analytics con filtro de fecha
+ */
+export const getAnalyticsStats = async (dateRange = 'all') => {
+  try {
+    const startDate = getDateRangeStart(dateRange);
+    
+    // Obtener órdenes
+    const ordersRef = collection(db, 'analytics_orders');
+    const ordersSnapshot = await getDocs(ordersRef);
+    
+    // Obtener actividad
+    const activityRef = collection(db, 'analytics_activity');
+    const activitySnapshot = await getDocs(activityRef);
+    
+    // Obtener suscripciones
+    const subsRef = collection(db, 'analytics_subscriptions');
+    const subsSnapshot = await getDocs(subsRef);
+    
+    // Filtrar órdenes por fecha si es necesario
+    let orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if (startDate) {
+      orders = orders.filter(order => {
+        if (!order.createdAt) return false;
+        const orderDate = order.createdAt.toDate();
+        return orderDate >= startDate;
+      });
+    }
+    
+    // Filtrar actividad por fecha
+    let activity = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if (startDate) {
+      activity = activity.filter(act => {
+        if (!act.timestamp) return false;
+        const actDate = act.timestamp.toDate();
+        return actDate >= startDate;
+      });
+    }
+    
+    // Filtrar suscripciones por fecha
+    let subscriptions = subsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if (startDate) {
+      subscriptions = subscriptions.filter(sub => {
+        if (!sub.createdAt) return false;
+        const subDate = sub.createdAt.toDate();
+        return subDate >= startDate;
+      });
+    }
+    
+    // Calcular métricas de órdenes
+    const totalOrders = orders.length;
+    const approvedOrders = orders.filter(o => o.status === 'approved').length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    
+    // Calcular revenue del período filtrado
+    const totalRevenue = orders
+      .filter(o => o.status === 'approved')
+      .reduce((sum, o) => sum + (o.price || 0), 0);
+    
+    // Calcular revenue del mes actual y anterior para comparación
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    
+    // Órdenes del mes actual (sin filtro de dateRange)
+    const currentMonthOrders = ordersSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(o => {
+        if (!o.createdAt) return false;
+        const orderDate = o.createdAt.toDate();
+        return orderDate >= currentMonthStart && orderDate <= now;
+      });
+    
+    // Órdenes del mes anterior
+    const previousMonthOrders = ordersSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(o => {
+        if (!o.createdAt) return false;
+        const orderDate = o.createdAt.toDate();
+        return orderDate >= previousMonthStart && orderDate <= previousMonthEnd;
+      });
+    
+    const currentMonthRevenue = currentMonthOrders
+      .filter(o => o.status === 'approved')
+      .reduce((sum, o) => sum + (o.price || 0), 0);
+    
+    const previousMonthRevenue = previousMonthOrders
+      .filter(o => o.status === 'approved')
+      .reduce((sum, o) => sum + (o.price || 0), 0);
+    
+    // Calcular suscripciones por tipo
+    const planSubs = subscriptions.filter(s => s.type === 'plan').length;
+    const creditSubs = subscriptions.filter(s => s.type === 'credits').length;
+    
+    const renewals = subscriptions.filter(s => s.isRenewal).length;
+    
+    // Usuarios únicos activos
+    const uniqueUsers = new Set(activity.map(a => a.userId)).size;
+    
+    // Obtener estadísticas de lives
+    const livesRef = collection(db, 'lives');
+    const livesSnapshot = await getDocs(livesRef);
+    const totalLives = livesSnapshot.size;
+    const availableLives = livesSnapshot.docs.filter(doc => doc.data().status === 'available').length;
+    
+    return {
+      orders: {
+        total: totalOrders,
+        approved: approvedOrders,
+        pending: pendingOrders,
+        comparison: calculateComparison(currentMonthOrders.length, previousMonthOrders.length)
+      },
+      revenue: {
+        total: currentMonthRevenue,
+        comparison: calculateComparison(currentMonthRevenue, previousMonthRevenue)
+      },
+      users: {
+        total: uniqueUsers,
+        new: Math.floor(uniqueUsers * 0.3),
+        active: Math.floor(uniqueUsers * 0.6),
+        inactive: Math.floor(uniqueUsers * 0.1)
+      },
+      subscriptions: {
+        total: planSubs + creditSubs,
+        plans: planSubs,
+        credits: creditSubs
+      },
+      lives: {
+        total: totalLives,
+        available: availableLives
+      },
+      renewals: renewals,
+      activity: activity.length
+    };
+  } catch (error) {
+    console.error('Error getting analytics stats:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener datos para gráfico de ventas dinámicas (por mes)
+ */
+export const getSalesDynamics = async (dateRange = 'all') => {
+  try {
+    const startDate = getDateRangeStart(dateRange);
+    
+    const ordersRef = collection(db, 'analytics_orders');
+    const snapshot = await getDocs(ordersRef);
+    
+    let orders = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(o => o.status === 'approved');
+    
+    // Aplicar filtro de fecha
+    if (startDate) {
+      orders = orders.filter(order => {
+        if (!order.createdAt) return false;
+        const orderDate = order.createdAt.toDate();
+        return orderDate >= startDate;
+      });
+    }
+    
+    // Agrupar por mes
+    const monthlyData = {};
+    
+    orders.forEach(order => {
+      const date = order.createdAt.toDate();
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).toUpperCase();
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          month: monthName,
+          monthKey: monthKey, // Para ordenar correctamente
+          plans: 0,
+          credits: 0,
+          total: 0
+        };
+      }
+      
+      if (order.type === 'plan') {
+        monthlyData[monthKey].plans += order.price || 0;
+      } else {
+        monthlyData[monthKey].credits += order.price || 0;
+      }
+      monthlyData[monthKey].total += order.price || 0;
+    });
+    
+    // Convertir a array y ordenar cronológicamente
+    const sortedData = Object.values(monthlyData)
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+    
+    // Limitar a los últimos 12 meses
+    const last12Months = sortedData.slice(-12);
+    
+    // Remover monthKey del resultado final (solo se usó para ordenar)
+    return last12Months.map(({ monthKey, ...rest }) => rest);
+  } catch (error) {
+    console.error('Error getting sales dynamics:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtener actividad de usuarios (por día)
+ */
+export const getUserActivity = async (dateRange = 'all') => {
+  try {
+    const startDate = getDateRangeStart(dateRange);
+    
+    const activityRef = collection(db, 'analytics_activity');
+    const snapshot = await getDocs(activityRef);
+    
+    let activity = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Aplicar filtro de fecha
+    if (startDate) {
+      activity = activity.filter(act => {
+        if (!act.timestamp) return false;
+        const actDate = act.timestamp.toDate();
+        return actDate >= startDate;
+      });
+    }
+    
+    // Agrupar por día
+    const dailyData = {};
+    
+    activity.forEach(act => {
+      const date = act.timestamp.toDate();
+      const dayKey = date.toISOString().split('T')[0];
+      const displayDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+      
+      if (!dailyData[dayKey]) {
+        dailyData[dayKey] = {
+          date: displayDate,
+          dateKey: dayKey, // Para ordenar correctamente
+          count: 0
+        };
+      }
+      
+      dailyData[dayKey].count++;
+    });
+    
+    // Ordenar cronológicamente y limitar a últimos 30 días
+    const sortedData = Object.values(dailyData)
+      .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+      .slice(-30);
+    
+    // Remover dateKey del resultado final
+    return sortedData.map(({ dateKey, ...rest }) => rest);
+  } catch (error) {
+    console.error('Error getting user activity:', error);
+    return [];
+  }
+};
+
+/**
+ * Obtener tabla de órdenes de clientes
+ */
+export const getCustomerOrders = async (limit = 10) => {
+  try {
+    const ordersRef = collection(db, 'analytics_orders');
+    const snapshot = await getDocs(ordersRef);
+    
+    const orders = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
+      .slice(0, limit);
+    
+    return orders.map(order => ({
+      id: order.id,
+      profile: order.createdBy,
+      address: order.targetUser,
+      date: order.createdAt.toDate().toLocaleDateString('es-ES'),
+      status: order.status,
+      price: `$${order.price}`
+    }));
+  } catch (error) {
+    console.error('Error getting customer orders:', error);
+    return [];
+  }
+};
+
+// Helper functions
+function getDateRangeStart(range) {
+  const now = new Date();
+  switch (range) {
+    case 'today':
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return today;
+    case 'week':
+      const week = new Date();
+      week.setDate(week.getDate() - 7);
+      return week;
+    case 'month':
+      const month = new Date();
+      month.setMonth(month.getMonth() - 1);
+      return month;
+    case 'year':
+      const year = new Date();
+      year.setFullYear(year.getFullYear() - 1);
+      return year;
+    case 'all':
+    default:
+      return null;
+  }
+}
+
+function calculateComparison(current, previous) {
+  if (previous === 0) return '+100%';
+  const diff = ((current - previous) / previous) * 100;
+  const sign = diff >= 0 ? '+' : '';
+  return `${sign}${diff.toFixed(1)}%`;
+}
+
+// ========== NOTIFICATIONS ==========
+
+/**
+ * Crear una notificación
+ */
+export const createNotification = async (userId, type, title, message, data = {}) => {
+  try {
+    const notificationRef = doc(collection(db, 'notifications'));
+    await setDoc(notificationRef, {
+      userId,
+      type,
+      title,
+      message,
+      data,
+      read: false,
+      createdAt: serverTimestamp()
+    });
+    return notificationRef.id;
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener notificaciones de un usuario
+ */
+export const getUserNotifications = async (userId, limitCount = 50) => {
+  try {
+    const notificationsRef = collection(db, 'notifications');
+    const q = query(
+      notificationsRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting notifications:', error);
+    return [];
+  }
+};
+
+/**
+ * Marcar notificación como leída
+ */
+export const markNotificationAsRead = async (notificationId) => {
+  try {
+    const notifRef = doc(db, 'notifications', notificationId);
+    await updateDoc(notifRef, { read: true });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw error;
+  }
+};
+
+/**
+ * Eliminar una notificación
+ */
+export const deleteNotification = async (notificationId) => {
+  try {
+    const { deleteDoc } = await import('firebase/firestore');
+    const notifRef = doc(db, 'notifications', notificationId);
+    await deleteDoc(notifRef);
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    throw error;
+  }
+};
+
+/**
+ * Eliminar todas las notificaciones de un usuario
+ */
+export const deleteAllNotifications = async (userId) => {
+  try {
+    const { deleteDoc } = await import('firebase/firestore');
+    const notificationsRef = collection(db, 'notifications');
+    const q = query(notificationsRef, where('userId', '==', userId));
+    const snapshot = await getDocs(q);
+    
+    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
+  } catch (error) {
+    console.error('Error deleting all notifications:', error);
+    throw error;
+  }
+};
+
+/**
+ * Crear notificación para todos los admins
+ */
+export const notifyAdmins = async (type, title, message, data = {}) => {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('role', 'in', ['admin', 'dev']));
+    const snapshot = await getDocs(q);
+    
+    const promises = snapshot.docs.map(userDoc => 
+      createNotification(userDoc.id, type, title, message, data)
+    );
+    
+    await Promise.all(promises);
+  } catch (error) {
+    console.error('Error notifying admins:', error);
+    throw error;
+  }
+};
+

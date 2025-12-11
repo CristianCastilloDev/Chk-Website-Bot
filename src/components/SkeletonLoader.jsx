@@ -1,6 +1,6 @@
 import './SkeletonLoader.css';
 
-const SkeletonLoader = ({ type = 'card', count = 1, height = '100px' }) => {
+const SkeletonLoader = ({ type = 'card', count = 1, height = '100px', columns = 4, rows = 5 }) => {
     const renderSkeleton = () => {
         switch (type) {
             case 'card':
@@ -27,6 +27,21 @@ const SkeletonLoader = ({ type = 'card', count = 1, height = '100px' }) => {
                             <div key={i} className="skeleton-table-row">
                                 {[1, 2, 3, 4].map(j => (
                                     <div key={j} className="skeleton-text skeleton-td"></div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                );
+
+            case 'table-rows':
+                return (
+                    <div className="skeleton-table-rows">
+                        {[...Array(rows)].map((_, i) => (
+                            <div key={i} className="skeleton-table-row-card">
+                                {[...Array(columns)].map((_, j) => (
+                                    <div key={j} className="skeleton-cell">
+                                        <div className="skeleton-text skeleton-bar"></div>
+                                    </div>
                                 ))}
                             </div>
                         ))}

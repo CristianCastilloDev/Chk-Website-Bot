@@ -4,6 +4,7 @@ import { Shield, Send, Trash2, Download, AlertCircle, CheckCircle, XCircle, Cloc
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import GateCard from '../components/GateCard';
+import { useToast } from '../components/Toast';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import { updateUserCredits, getAllGates, saveLive } from '../services/db';
@@ -25,6 +26,7 @@ const Gates = () => {
 
     const { canInteract, hasActiveSubscription, isAdmin, isDev } = usePermissions();
     const { user } = useAuth();
+    const { showSuccess, showWarning } = useToast();
     const navigate = useNavigate();
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.56.2:8000';
@@ -62,12 +64,12 @@ const Gates = () => {
 
     const handleValidate = async () => {
         if (!selectedGate) {
-            alert('Por favor selecciona un gate primero');
+            showWarning('Por favor selecciona un gate primero');
             return;
         }
 
         if (!cards.trim()) {
-            alert('Por favor ingresa al menos una tarjeta');
+            showWarning('Por favor ingresa al menos una tarjeta');
             return;
         }
 
@@ -76,7 +78,7 @@ const Gates = () => {
         if (!isAdmin() && !isDev()) {
             const creditsNeeded = cardList.length;
             if (!hasActiveSubscription() && user.credits < creditsNeeded) {
-                alert(`Necesitas ${creditsNeeded} créditos. Tienes ${user.credits}. Compra más créditos o un plan.`);
+                showError(`Necesitas ${creditsNeeded} créditos. Tienes ${user.credits}. Compra más créditos o un plan.`);
                 return;
             }
         }
@@ -205,7 +207,7 @@ const Gates = () => {
         const deadCount = newResults.filter(r => r.icon === 'dead' || r.icon === 'error').length;
 
         // Notificación de éxito
-        alert(`✅ Validación completada: ${liveCount} Lives, ${deadCount} Dead`);
+        showSuccess(`Validación completada: ${liveCount} Lives, ${deadCount} Dead`);
     };
 
     const parseResult = (data, card, time) => {

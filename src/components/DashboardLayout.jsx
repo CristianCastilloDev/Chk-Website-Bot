@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { usePermissions } from '../hooks/usePermissions';
+import NotificationCenter from './NotificationCenter';
 import './Dashboard.css';
 
 const DashboardLayout = ({ children, currentPage }) => {
@@ -84,6 +85,14 @@ const DashboardLayout = ({ children, currentPage }) => {
                     icon: ShoppingCart,
                     path: '/dashboard/sales',
                     adminOnly: true
+                },
+                {
+                    id: 'orders',
+                    label: 'Órdenes',
+                    icon: ShoppingCart,
+                    path: '/dashboard/orders',
+                    devOnly: true,
+                    badge: 'DEV'
                 },
                 {
                     id: 'gate-status',
@@ -358,6 +367,9 @@ const DashboardLayout = ({ children, currentPage }) => {
                     </button>
 
                     <div className="header-actions">
+                        {/* Notification Center - Only for admins and devs */}
+                        {(isAdmin() || isDev()) && <NotificationCenter />}
+                        
                         {/* User Status Badges */}
                         {user && (
                             <div className="header-badges">

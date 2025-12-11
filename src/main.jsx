@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
 import App from './App.jsx';
+import './utils/generateAnalyticsData'; // Load analytics data generator functions
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Database, Filter, Search, Download, Copy, Calendar, Shield, CreditCard, Wallet, Clock, User } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import SkeletonLoader from '../components/SkeletonLoader';
+import { useToast } from '../components/Toast';
 import { usePermissions } from '../hooks/usePermissions';
 import { getAllLives, getGlobalStats } from '../services/db';
 import './Pages.css';
@@ -17,6 +19,7 @@ const LivesAdmin = () => {
     const [filterUser, setFilterUser] = useState('');
 
     const { isDev } = usePermissions();
+    const { showSuccess } = useToast();
 
     useEffect(() => {
         if (isDev()) {
@@ -31,6 +34,10 @@ const LivesAdmin = () => {
     const loadData = async () => {
         try {
             setLoading(true);
+            
+            // Delay de 2 segundos para mostrar la animación del skeleton
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             const [allLives, globalStats] = await Promise.all([
                 getAllLives(),
                 getGlobalStats()
@@ -96,7 +103,7 @@ const LivesAdmin = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        alert('Tarjeta copiada al portapapeles!');
+        showSuccess('Tarjeta copiada al portapapeles');
     };
 
     const exportToCSV = () => {
@@ -334,8 +341,26 @@ const LivesAdmin = () => {
                     </h3>
 
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '3rem' }}>
-                            <p>Cargando lives...</p>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '2px solid var(--glass-border)' }}>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Usuario</th>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Tarjeta</th>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Gate</th>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Fecha</th>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Tiempo</th>
+                                        <th style={{ padding: '1rem', textAlign: 'left' }}>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colSpan="6" style={{ padding: 0 }}>
+                                            <SkeletonLoader type="table-rows" columns={6} rows={5} />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     ) : filteredLives.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '3rem' }}>

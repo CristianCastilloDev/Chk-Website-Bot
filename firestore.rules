@@ -1,0 +1,188 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========== FUNCIONES HELPER ==========
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isDev() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dev';
+    }
+    
+    function isAdminOrDev() {
+      return isAdmin() || isDev();
+    }
+
+    // ========== USUARIOS ==========
+    
+    match /users/{userId} {
+      allow read: if true;  // CRÍTICO para login
+      allow create: if request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdminOrDev();
+      allow delete: if isAdminOrDev();
+    }
+
+    // ========== GATES ==========
+    
+    match /gates/{gateId} {
+      allow read: if true;
+      allow create, update, delete: if isAdminOrDev();
+    }
+
+    // ========== ESTADÍSTICAS GLOBALES ==========
+    
+    match /stats/global {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // ========== VENTAS ==========
+    
+    match /sales/{saleId} {
+      allow read: if isAdminOrDev();
+      allow write: if isAdminOrDev();
+    }
+    
+    // ========== TRANSACCIONES ==========
+    
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdminOrDev());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdminOrDev();
+    }
+
+    // ========== LIVES ==========
+    
+    match /lives/{liveId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdminOrDev());
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && 
+                               (resource.data.userId == request.auth.uid || isAdminOrDev());
+    }
+
+    // ========== BIN SEARCHES ==========
+    
+    match /bin_searches/{searchId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdminOrDev());
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && 
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // ========== BIN CACHE ==========
+    
+    match /bin_cache/{binId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // ========== VALIDATION RESULTS ==========
+    
+    match /validation_results/{resultId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdminOrDev());
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdminOrDev();
+    }
+
+    // ========== PLANES ==========
+    
+    match /plans/{planId} {
+      allow read: if true;
+      allow write: if isAdminOrDev();
+    }
+
+    // ========== SUSCRIPCIONES ==========
+    
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdminOrDev());
+      allow write: if isAdminOrDev();
+    }
+
+    // ========== ANALYTICS - ÓRDENES ==========
+    
+    match /analytics_orders/{orderId} {
+      // Solo admins y devs pueden leer
+      allow read: if isAdminOrDev();
+      
+      // Solo admins pueden crear órdenes
+      allow create: if isAdmin();
+      
+      // Solo devs pueden actualizar (aprobar/rechazar)
+      allow update: if isDev();
+      
+      // Solo devs pueden eliminar
+      allow delete: if isDev();
+    }
+    
+    // ========== ANALYTICS - ACTIVIDAD ==========
+    
+    match /analytics_activity/{activityId} {
+      // Solo admins y devs pueden leer
+      allow read: if isAdminOrDev();
+      
+      // Cualquier usuario autenticado puede crear su propia actividad
+      allow create: if isAuthenticated();
+      
+      // Solo devs pueden actualizar o eliminar
+      allow update, delete: if isDev();
+    }
+    
+    // ========== ANALYTICS - SUSCRIPCIONES ==========
+    
+    match /analytics_subscriptions/{subscriptionId} {
+      // Solo admins y devs pueden leer
+      allow read: if isAdminOrDev();
+      
+      // Solo admins y devs pueden crear
+      allow create: if isAdminOrDev();
+      
+      // Solo devs pueden actualizar o eliminar
+      allow update, delete: if isDev();
+    }
+
+    // ========== NOTIFICACIONES ==========
+    
+    match /notifications/{notificationId} {
+      // Permitir lectura solo al usuario dueño de la notificación
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Permitir crear notificaciones solo a admins y devs
+      allow create: if isAdminOrDev();
+      
+      // Permitir actualizar (marcar como leída) solo al dueño
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Permitir eliminar solo al dueño de la notificación
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+
+    // ========== CATCH-ALL (DENEGAR TODO LO DEMÁS) ==========
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

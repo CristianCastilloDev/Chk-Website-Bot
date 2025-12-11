@@ -19,9 +19,20 @@ export const ToastProvider = ({ children }) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
-    const addToast = useCallback((message, type = 'info', duration = 3000) => {
+    const addToast = useCallback((message, type = 'info', duration = 4000) => {
         const id = Date.now() + Math.random();
-        const toast = { id, message, type };
+        
+        // Support both string and object formats
+        let title, description;
+        if (typeof message === 'string') {
+            title = message;
+            description = null;
+        } else {
+            title = message.title || message.message;
+            description = message.description || null;
+        }
+        
+        const toast = { id, title, description, type };
 
         setToasts((prev) => [...prev, toast]);
 
@@ -76,7 +87,7 @@ const ToastContainer = ({ toasts, removeToast }) => {
     );
 };
 
-const Toast = ({ id, message, type, onClose }) => {
+const Toast = ({ id, title, description, type, onClose }) => {
     const icons = {
         success: <CheckCircle size={20} />,
         error: <XCircle size={20} />,
@@ -87,10 +98,14 @@ const Toast = ({ id, message, type, onClose }) => {
     return (
         <div className={`toast toast-${type}`}>
             <div className="toast-icon">{icons[type]}</div>
-            <div className="toast-message">{message}</div>
+            <div className="toast-content">
+                <div className="toast-title">{title}</div>
+                {description && <div className="toast-description">{description}</div>}
+            </div>
             <button className="toast-close" onClick={onClose} aria-label="Close notification">
                 <X size={16} />
             </button>
         </div>
     );
 };
+

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Search, CreditCard, Globe, Building2, TrendingUp, Lock, AlertCircle, CheckCircle, Copy } from 'lucide-react';
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Card, Title, BarChart, DonutChart } from '@tremor/react';
 import DashboardLayout from '../components/DashboardLayout';
 import SkeletonLoader from '../components/SkeletonLoader';
+import DateRangePicker from '../components/DateRangePicker';
+import { useToast } from '../components/Toast';
 import { usePermissions } from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import { saveBinSearch, getUserBinSearches, getBinStats } from '../services/db';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import '../utils/generateTestData'; // Cargar funciones de prueba
 import './Pages.css';
 
 const BinAnalytics = () => {
@@ -25,8 +28,20 @@ const BinAnalytics = () => {
         cardTypes: [],
         cardLevels: []
     });
+    const [chartsData, setChartsData] = useState({
+        topBinsWithLives: [],
+        mostCheckedBins: [],
+        topBanks: [],
+        topCountries: [],
+        topBrands: [],
+        cardTypes: [],
+        cardLevels: []
+    });
     const [statsLoading, setStatsLoading] = useState(true);
+    const [chartsLoading, setChartsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('search'); // 'search', 'stats', 'charts', or 'gates' - Default: search
+    const [chartPeriod, setChartPeriod] = useState('all'); // 'today', 'week', 'month', 'year', 'all'
+    const [statsPeriod, setStatsPeriod] = useState('all'); // Filtro independiente para estadísticas
 
     // Gate Search States
     const [searchBin, setSearchBin] = useState('');
@@ -40,6 +55,7 @@ const BinAnalytics = () => {
 
     const { hasActiveSubscription, isAdmin, isDev } = usePermissions();
     const { user } = useAuth();
+    const { showSuccess } = useToast();
 
     useEffect(() => {
         if (user && user.id && (hasActiveSubscription() || isAdmin() || isDev())) {
@@ -57,10 +73,10 @@ const BinAnalytics = () => {
         }
     };
 
-    const loadStats = async () => {
+    const loadStats = async (period = 'all') => {
         try {
             setStatsLoading(true);
-            const binStats = await getBinStats();
+            const binStats = await getBinStats(period);
             setStats(binStats);
         } catch (error) {
             console.error('Error loading stats:', error);
@@ -68,6 +84,34 @@ const BinAnalytics = () => {
             setStatsLoading(false);
         }
     };
+
+    const loadChartsData = async (period = 'all') => {
+        try {
+            setChartsLoading(true);
+            const binStats = await getBinStats(period);
+            setChartsData(binStats);
+        } catch (error) {
+            console.error('Error loading charts:', error);
+        } finally {
+            setChartsLoading(false);
+        }
+    };
+
+    // Reload charts when chart period changes OR when switching to charts tab
+    useEffect(() => {
+        if (user?.id && (hasActiveSubscription() || isAdmin() || isDev()) && activeTab === 'charts') {
+            loadChartsData(chartPeriod);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chartPeriod, activeTab]);
+
+    // Reload stats when stats period changes OR when switching to stats tab
+    useEffect(() => {
+        if (user?.id && (hasActiveSubscription() || isAdmin() || isDev()) && activeTab === 'stats') {
+            loadStats(statsPeriod);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [statsPeriod, activeTab]);
 
 
     const analyzeBin = async () => {
@@ -157,7 +201,6 @@ const BinAnalytics = () => {
             setResult(binInfo);
             await saveBinSearch(user.id, binInfo);
             loadHistory();
-            loadStats();
 
         } catch (err) {
             console.error('Error fetching BIN:', err);
@@ -281,7 +324,7 @@ const BinAnalytics = () => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        alert('Copiado al portapapeles');
+        showSuccess('Copiado al portapapeles');
     };
 
     if (!hasActiveSubscription() && !isAdmin() && !isDev()) {
@@ -529,292 +572,310 @@ const BinAnalytics = () => {
                     </div>
                 )}
 
+
+
                 {/* Sección de Gráficos Visuales */}
-                {!statsLoading && (stats.topBanks.length > 0 || stats.topCountries.length > 0) && activeTab === 'charts' && (
+                {activeTab === 'charts' && (
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <TrendingUp size={28} />
-                            📊 Estadísticas Visuales
-                        </h2>
-
-                        {/* Grid de Gráficos */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-
-                            {/* Top Bancos - Bar Chart */}
-                            {stats.topBanks.length > 0 && (
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', transition: 'all 0.3s ease', cursor: 'pointer' }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Building2 size={20} />
-                                        Top Bancos
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={stats.topBanks.map(item => ({ name: item.bank.substring(0, 20), value: item.count }))}>
-                                            <defs>
-                                                <linearGradient id="colorBanks" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9} />
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.4} />
-                                                </linearGradient>
-                                            </defs>
-                                            <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} style={{ fontSize: '0.75rem', fill: 'var(--text-secondary)' }} />
-                                            <YAxis style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    background: 'rgba(30, 30, 46, 0.95)',
-                                                    border: '2px solid rgba(59, 130, 246, 0.6)',
-                                                    borderRadius: '12px',
-                                                    padding: '12px 16px',
-                                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                                                    backdropFilter: 'blur(10px)'
-                                                }}
-                                                labelStyle={{ color: '#fff', fontWeight: 700, marginBottom: '6px', fontSize: '0.95rem' }}
-                                                itemStyle={{ color: '#3b82f6', fontWeight: 600 }}
-                                                cursor={{ fill: 'rgba(59, 130, 246, 0.15)' }}
-                                            />
-                                            <Bar dataKey="value" fill="url(#colorBanks)" radius={[8, 8, 0, 0]} animationDuration={1200} animationBegin={0} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Tipos de Tarjeta - Donut Chart */}
-                            {stats.cardTypes.length > 0 && (
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <CreditCard size={20} />
-                                        Tipos de Tarjeta
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <PieChart>
-                                            <Pie
-                                                data={stats.cardTypes.map(item => ({ name: item.type, value: item.count }))}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={100}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                                label={(entry) => `${entry.name}: ${entry.value}`}
-                                            >
-                                                {stats.cardTypes.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : '#6b7280'} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Top Países - Bar Chart */}
-                            {stats.topCountries.length > 0 && (
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Globe size={20} />
-                                        Top Países
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={stats.topCountries.map(item => ({ name: item.country, value: item.count }))}>
-                                            <XAxis dataKey="name" style={{ fontSize: '0.85rem' }} />
-                                            <YAxis />
-                                            <Tooltip
-                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                labelStyle={{ color: 'var(--text-primary)' }}
-                                            />
-                                            <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Niveles de Tarjeta - Donut Chart */}
-                            {stats.cardLevels.length > 0 && (
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <TrendingUp size={20} />
-                                        Niveles de Tarjeta
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <PieChart>
-                                            <Pie
-                                                data={stats.cardLevels.map(item => ({ name: item.level, value: item.count }))}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={100}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                                label={(entry) => `${entry.name}: ${entry.value}`}
-                                            >
-                                                {stats.cardLevels.map((entry, index) => {
-                                                    const colors = ['#f59e0b', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#06b6d4', '#ec4899'];
-                                                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
-                                                })}
-                                            </Pie>
-                                            <Tooltip
-                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Top Marcas - Bar Chart */}
-                            {stats.topBrands.length > 0 && (
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', gridColumn: stats.topBrands.length > 3 ? '1 / -1' : 'auto' }}>
-                                    <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <CheckCircle size={20} />
-                                        Top Marcas
-                                    </h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={stats.topBrands.map(item => ({ name: item.brand, value: item.count }))} layout="horizontal">
-                                            <XAxis type="number" style={{ fontSize: '0.85rem', fill: 'var(--text-secondary)' }} />
-                                            <YAxis dataKey="name" type="category" width={120} style={{ fontSize: '0.85rem', fill: 'var(--text-primary)' }} />
-                                            <Tooltip
-                                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                                                labelStyle={{ color: 'var(--text-primary)' }}
-                                            />
-                                            <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                                                {stats.topBrands.map((entry, index) => {
-                                                    const brandColors = {
-                                                        'VISA': '#1a1f71',
-                                                        'MASTERCARD': '#eb001b',
-                                                        'AMEX': '#006fcf',
-                                                        'DISCOVER': '#ff6000'
-                                                    };
-                                                    return <Cell key={`cell-${index}`} fill={brandColors[entry.brand.toUpperCase()] || '#8b5cf6'} />;
-                                                })}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
+                        {/* Header con Filtro de Período */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '1.5rem',
+                            flexWrap: 'wrap',
+                            gap: '1rem'
+                        }}>
+                            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <TrendingUp size={28} />
+                                📊 Estadísticas Visuales
+                            </h2>
+                            
+                            {/* Filtro de Período */}
+                            <DateRangePicker 
+                                value={chartPeriod}
+                                onChange={(period, customRange) => {
+                                    setChartPeriod(period);
+                                    if (period === 'custom' && customRange) {
+                                        // Handle custom range if needed
+                                        console.log('Custom range:', customRange);
+                                    }
+                                }}
+                            />
                         </div>
+
+
+
+                        {/* Skeleton Loading */}
+                        {chartsLoading ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div key={i} className="glass" style={{ padding: '1.5rem', borderRadius: '12px', height: '350px' }}>
+                                        <SkeletonLoader type="chart" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (chartsData.topBanks.length === 0 && chartsData.topCountries.length === 0 && chartsData.topBrands.length === 0) ? (
+                            /* Mensaje de No Hay Datos */
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '4rem 2rem',
+                                background: 'var(--bg-secondary)',
+                                borderRadius: '12px',
+                                border: '1px solid var(--glass-border)'
+                            }}>
+                                <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📊</div>
+                                <h3 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                                    No se encontraron resultados
+                                </h3>
+                                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                                    No hay datos disponibles para el período seleccionado.
+                                </p>
+                                <button
+                                    onClick={() => setChartPeriod('all')}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'var(--primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 600,
+                                        fontSize: '0.95rem',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                >
+                                    Ver todos los tiempos
+                                </button>
+                            </div>
+                        ) : (
+                            /* Grid de Gráficos */
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+
+                                {/* 1. Top Bancos - Bar Chart */}
+                                {chartsData.topBanks.length > 0 && (
+                                    <Card className="animate-fade-in">
+                                        <Title>📊 Top Bancos</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={chartsData.topBanks.map(item => ({ 
+                                                banco: item.bank.length > 20 ? item.bank.substring(0, 20) + '...' : item.bank, 
+                                                Lives: item.count 
+                                            }))}
+                                            index="banco"
+                                            categories={["Lives"]}
+                                            colors={["blue"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            yAxisWidth={48}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
+
+                                {/* 2. Top Países - Bar Chart */}
+                                {chartsData.topCountries.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                                        <Title>🌍 Top Países</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={chartsData.topCountries.map(item => ({ 
+                                                país: item.country, 
+                                                Lives: item.count 
+                                            }))}
+                                            index="país"
+                                            categories={["Lives"]}
+                                            colors={["emerald"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            yAxisWidth={48}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
+
+                                {/* 3. Top Marcas - Bar Chart */}
+                                {chartsData.topBrands.length > 0 && (
+                                    <Card className={`animate-fade-in ${chartsData.topBrands.length > 3 ? "col-span-full" : ""}`} style={{ animationDelay: '0.2s' }}>
+                                        <Title>🏦 Top Marcas</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={chartsData.topBrands.map(item => ({ 
+                                                marca: item.brand, 
+                                                Lives: item.count 
+                                            }))}
+                                            index="marca"
+                                            categories={["Lives"]}
+                                            colors={["violet"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            layout="horizontal"
+                                            yAxisWidth={100}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
+
+                                {/* 4. Tipos de Tarjeta - Donut Chart */}
+                                {chartsData.cardTypes.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                                        <Title>💳 Tipos de Tarjeta</Title>
+                                        <DonutChart
+                                            className="mt-6"
+                                            data={chartsData.cardTypes.map(item => ({ 
+                                                tipo: item.type, 
+                                                Cantidad: item.count 
+                                            }))}
+                                            category="Cantidad"
+                                            index="tipo"
+                                            colors={["blue", "slate"]}
+                                            valueFormatter={(value) => `${value} tarjetas`}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
+
+                                {/* 5. Niveles de Tarjeta - Donut Chart */}
+                                {chartsData.cardLevels.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                                        <Title>📈 Niveles de Tarjeta</Title>
+                                        <DonutChart
+                                            className="mt-6"
+                                            data={chartsData.cardLevels.map(item => ({ 
+                                                nivel: item.level, 
+                                                Cantidad: item.count 
+                                            }))}
+                                            category="Cantidad"
+                                            index="nivel"
+                                            colors={["amber", "violet", "blue", "emerald", "red", "cyan", "pink"]}
+                                            valueFormatter={(value) => `${value} tarjetas`}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {/* Sección de Estadísticas (Cards) */}
                 {activeTab === 'stats' && (
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <TrendingUp size={28} />
-                            📈 Estadísticas Detalladas
-                        </h2>
+                        {/* Header con Filtro de Período */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '1.5rem',
+                            flexWrap: 'wrap',
+                            gap: '1rem'
+                        }}>
+                            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <TrendingUp size={28} />
+                                📈 Estadísticas Detalladas
+                            </h2>
+                            
+                            {/* Filtro de Período para Estadísticas */}
+                            <DateRangePicker 
+                                value={statsPeriod}
+                                onChange={(period, customRange) => {
+                                    setStatsPeriod(period);
+                                    if (period === 'custom' && customRange) {
+                                        console.log('Custom range (stats):', customRange);
+                                    }
+                                }}
+                            />
+                        </div>
 
                         {statsLoading ? (
-                            <SkeletonLoader type="card" count={4} height="200px" />
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="glass" style={{ padding: '1.5rem', borderRadius: '12px', height: '350px' }}>
+                                        <SkeletonLoader type="chart" />
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                                {/* BINs con más Lives */}
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-                                        <TrendingUp size={20} />
-                                        BINs con más Lives
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {stats.topBinsWithLives.length > 0 ? (
-                                            <>
-                                                {stats.topBinsWithLives.slice(0, visibleBins).map((item, index) => (
-                                                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                                                        <span style={{ fontWeight: 600 }}>{item.bin}</span>
-                                                        <span style={{ color: '#10b981', fontWeight: 600 }}>{item.lives} Lives</span>
-                                                    </div>
-                                                ))}
-                                                {visibleBins < stats.topBinsWithLives.length && (
-                                                    <button onClick={() => setVisibleBins(prev => prev + 3)} style={{ padding: '0.5rem', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                                        Ver más
-                                                    </button>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No hay datos aún</p>
-                                        )}
-                                    </div>
-                                </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                                {/* BINs con más Lives - BarChart */}
+                                {stats.topBinsWithLives.length > 0 && (
+                                    <Card className="animate-fade-in">
+                                        <Title>🔢 BINs con más Lives</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={stats.topBinsWithLives.slice(0, 10).map(item => ({ 
+                                                BIN: item.bin, 
+                                                Lives: item.lives 
+                                            }))}
+                                            index="BIN"
+                                            categories={["Lives"]}
+                                            colors={["emerald"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            yAxisWidth={48}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
 
-                                {/* BINs más Consultados */}
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-                                        <Search size={20} />
-                                        BINs más Consultados
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {stats.mostCheckedBins.length > 0 ? (
-                                            <>
-                                                {stats.mostCheckedBins.slice(0, visibleChecked).map((item, index) => (
-                                                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                                                        <span style={{ fontWeight: 600 }}>{item.bin}</span>
-                                                        <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>{item.count} veces</span>
-                                                    </div>
-                                                ))}
-                                                {visibleChecked < stats.mostCheckedBins.length && (
-                                                    <button onClick={() => setVisibleChecked(prev => prev + 3)} style={{ padding: '0.5rem', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                                        Ver más
-                                                    </button>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No hay datos aún</p>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* BINs más Consultados - BarChart */}
+                                {stats.mostCheckedBins.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                                        <Title>🔍 BINs más Consultados</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={stats.mostCheckedBins.slice(0, 10).map(item => ({ 
+                                                BIN: item.bin, 
+                                                Consultas: item.count 
+                                            }))}
+                                            index="BIN"
+                                            categories={["Consultas"]}
+                                            colors={["violet"]}
+                                            valueFormatter={(value) => `${value} veces`}
+                                            yAxisWidth={48}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
 
-                                {/* Top Bancos */}
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-                                        <Building2 size={20} />
-                                        Top Bancos
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {stats.topBanks.length > 0 ? (
-                                            <>
-                                                {stats.topBanks.slice(0, visibleBanks).map((item, index) => (
-                                                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                                                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.bank}</span>
-                                                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{item.count} Lives</span>
-                                                    </div>
-                                                ))}
-                                                {visibleBanks < stats.topBanks.length && (
-                                                    <button onClick={() => setVisibleBanks(prev => prev + 3)} style={{ padding: '0.5rem', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                                        Ver más
-                                                    </button>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No hay datos aún</p>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* Top Bancos - BarChart Horizontal */}
+                                {stats.topBanks.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                                        <Title>🏦 Top Bancos</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={stats.topBanks.slice(0, 8).map(item => ({ 
+                                                banco: item.bank.length > 25 ? item.bank.substring(0, 25) + '...' : item.bank, 
+                                                Lives: item.count 
+                                            }))}
+                                            index="banco"
+                                            categories={["Lives"]}
+                                            colors={["blue"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            layout="horizontal"
+                                            yAxisWidth={150}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
 
-                                {/* Top Países */}
-                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px' }}>
-                                    <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-                                        <Globe size={20} />
-                                        Top Países
-                                    </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        {stats.topCountries.length > 0 ? (
-                                            <>
-                                                {stats.topCountries.slice(0, visibleCountries).map((item, index) => (
-                                                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: '6px' }}>
-                                                        <span style={{ fontWeight: 600 }}>{item.country}</span>
-                                                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{item.count} Lives</span>
-                                                    </div>
-                                                ))}
-                                                {visibleCountries < stats.topCountries.length && (
-                                                    <button onClick={() => setVisibleCountries(prev => prev + 3)} style={{ padding: '0.5rem', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                                        Ver más
-                                                    </button>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No hay datos aún</p>
-                                        )}
-                                    </div>
-                                </div>
+                                {/* Top Países - BarChart */}
+                                {stats.topCountries.length > 0 && (
+                                    <Card className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                                        <Title>🌍 Top Países</Title>
+                                        <BarChart
+                                            className="mt-6"
+                                            data={stats.topCountries.slice(0, 10).map(item => ({ 
+                                                país: item.country, 
+                                                Lives: item.count 
+                                            }))}
+                                            index="país"
+                                            categories={["Lives"]}
+                                            colors={["cyan"]}
+                                            valueFormatter={(value) => `${value} lives`}
+                                            yAxisWidth={80}
+                                            showAnimation={true}
+                                        />
+                                    </Card>
+                                )}
                             </div>
                         )}
                     </div>
@@ -823,10 +884,31 @@ const BinAnalytics = () => {
                 {/* Sección de Buscar Gate */}
                 {activeTab === 'gates' && (
                     <div style={{ marginBottom: '2rem' }}>
-                        <h2 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Search size={28} />
-                            🔍 Buscar Gate por BIN
-                        </h2>
+                        {/* Header con Filtro de Período */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginBottom: '1.5rem',
+                            flexWrap: 'wrap',
+                            gap: '1rem'
+                        }}>
+                            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Search size={28} />
+                                🔍 Buscar Gate por BIN
+                            </h2>
+                            
+                            {/* Filtro de Período para Gates */}
+                            <DateRangePicker 
+                                value={chartPeriod}
+                                onChange={(period, customRange) => {
+                                    setChartPeriod(period);
+                                    if (period === 'custom' && customRange) {
+                                        console.log('Custom range (gates):', customRange);
+                                    }
+                                }}
+                            />
+                        </div>
 
                         {/* Buscador de BIN */}
                         <div className="glass" style={{ padding: '2rem', borderRadius: '12px', marginBottom: '2rem' }}>

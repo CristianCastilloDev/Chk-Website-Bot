@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, DollarSign, Shield, User, Crown, Code, Calendar } from 'lucide-react';
-import { addCreditsToUser, addPlanToUser, updateUserRole } from '../services/db';
+import { X, Plus, DollarSign, Calendar, User, Crown, Shield, Code } from 'lucide-react';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import './EditUserModal.css';
 
 const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
     const { user: currentUser } = useAuth();
     const [creditsToAdd, setCreditsToAdd] = useState(0);
-    const [role, setRole] = useState(user?.role || 'free');
     const [planDuration, setPlanDuration] = useState(30);
     const [creditPrice, setCreditPrice] = useState(0);
     const [planPrice, setPlanPrice] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [actionType, setActionType] = useState(''); // 'credits', 'plan', or 'role'
 
     // Precios sugeridos
     const suggestedPrices = {
@@ -35,7 +33,6 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
 
     useEffect(() => {
         if (user) {
-            setRole(user.role || 'free');
             setCreditsToAdd(0);
             setError('');
             setSuccessMessage('');
@@ -58,18 +55,36 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
         setSuccessMessage('');
 
         try {
-            await addCreditsToUser(user.id, creditsToAdd, currentUser.id, currentUser.name, creditPrice);
-            setSuccessMessage(`✅ ${creditsToAdd} créditos vendidos por $${creditPrice}`);
+            // Crear orden en lugar de aplicar directamente
+            const ordersRef = collection(db, 'analytics_orders');
+            await addDoc(ordersRef, {
+                createdBy: currentUser.name || currentUser.email,
+                createdAt: new Date(),
+                targetUser: user.name,
+                targetUserEmail: user.email,
+                type: 'credits',
+                description: `${creditsToAdd} créditos`,
+                amount: creditsToAdd,
+                price: creditPrice,
+                status: 'pending',
+                approvedBy: null,
+                approvedAt: null,
+                rejectedBy: null,
+                rejectedAt: null,
+                rejectionReason: null
+            });
+            
+            setSuccessMessage(`✅ Orden de ${creditsToAdd} créditos creada. Esperando aprobación de Dev.`);
             setCreditsToAdd(0);
             setCreditPrice(0);
             setTimeout(() => {
                 setSuccessMessage('');
                 onSave();
                 onClose();
-            }, 2000);
+            }, 3000);
         } catch (error) {
-            console.error('Error adding credits:', error);
-            setError(error.message || 'Error al agregar créditos');
+            console.error('Error creating order:', error);
+            setError(error.message || 'Error al crear la orden');
         } finally {
             setLoading(false);
         }
@@ -91,48 +106,48 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
         setSuccessMessage('');
 
         try {
-            await addPlanToUser(user.id, planDuration, currentUser.id, currentUser.name, planPrice);
-            const planName = planDuration === 1 ? 'Plan Diario' : planDuration === 7 ? 'Plan Semanal' : planDuration === 15 ? 'Plan Quincenal' : 'Plan Mensual';
-            setSuccessMessage(`✅ ${planName} vendido por $${planPrice}`);
+            // Crear orden en lugar de aplicar directamente
+            const planName = planDuration === 1 ? 'Plan Diario' : 
+                           planDuration === 7 ? 'Plan Semanal' : 
+                           planDuration === 15 ? 'Plan Quincenal' : 'Plan Mensual';
+            
+            const ordersRef = collection(db, 'analytics_orders');
+            await addDoc(ordersRef, {
+                createdBy: currentUser.name || currentUser.email,
+                createdAt: new Date(),
+                targetUser: user.name,
+                targetUserEmail: user.email,
+                type: 'plan',
+                description: `${planName} (${planDuration} días)`,
+                amount: planDuration,
+                price: planPrice,
+                status: 'pending',
+                approvedBy: null,
+                approvedAt: null,
+                rejectedBy: null,
+                rejectedAt: null,
+                rejectionReason: null
+            });
+            
+            setSuccessMessage(`✅ Orden de ${planName} creada. Esperando aprobación de Dev.`);
             setPlanPrice(0);
             setTimeout(() => {
                 setSuccessMessage('');
                 onSave();
                 onClose();
-            }, 2000);
+            }, 3000);
         } catch (error) {
-            console.error('Error adding plan:', error);
-            setError(error.message || 'Error al agregar plan');
+            console.error('Error creating order:', error);
+            setError(error.message || 'Error al crear la orden');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleUpdateRole = async () => {
-        if (role === user.role) {
-            setError('El rol no ha cambiado');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        try {
-            await updateUserRole(user.id, role, currentUser.id);
-            onSave();
-            onClose();
-        } catch (error) {
-            console.error('Error updating role:', error);
-            setError(error.message || 'Error al actualizar rol');
-        } finally {
-            setLoading(false);
-            setShowConfirm(false);
         }
     };
 
     const getRoleIcon = (roleName) => {
         const icons = {
             free: User,
+            miembro: User,
             premium: Crown,
             pro: Shield,
             admin: Shield,
@@ -141,6 +156,8 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
         const Icon = icons[roleName] || User;
         return <Icon size={16} />;
     };
+
+
 
     const getRoleColor = (roleName) => {
         const colors = {
@@ -250,41 +267,7 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
                                     </div>
                                 </div>
 
-                                {/* Column 2: Change Role (Dev Only) */}
-                                {currentUser?.role === 'dev' && (
-                                    <div className="modal-column">
-                                        <h4 className="column-title">Cambiar Rol (Solo Dev)</h4>
-                                        <div className="form-group">
-                                            <div className="role-selector-vertical">
-                                                {['miembro', 'admin', 'dev'].map((roleName) => (
-                                                    <button
-                                                        key={roleName}
-                                                        className={`role-option ${role === roleName ? 'active' : ''}`}
-                                                        onClick={() => setRole(roleName)}
-                                                        style={{
-                                                            borderColor: role === roleName ? getRoleColor(roleName) : 'var(--glass-border)'
-                                                        }}
-                                                    >
-                                                        {getRoleIcon(roleName)}
-                                                        <span>{roleName.charAt(0).toUpperCase() + roleName.slice(1)}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            {role !== user?.role && (
-                                                <button
-                                                    className="btn-action"
-                                                    onClick={() => {
-                                                        setActionType('role');
-                                                        setShowConfirm(true);
-                                                    }}
-                                                    disabled={loading}
-                                                >
-                                                    Actualizar Rol
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 {/* Column 3: Add Credits + Add Plan */}
                                 {user?.role !== 'dev' && (
@@ -416,34 +399,7 @@ const EditUserModal = ({ user, isOpen, onClose, onSave }) => {
                         </motion.div>
                     </motion.div>
 
-                    {/* Confirmation Dialog */}
-                    {showConfirm && (
-                        <motion.div
-                            className="confirm-dialog glass"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                        >
-                            <h3>Confirmar Cambio de Rol</h3>
-                            <p>¿Estás seguro de cambiar el rol de {user?.name} a {role}?</p>
-                            <div className="confirm-actions">
-                                <button
-                                    className="btn-secondary"
-                                    onClick={() => setShowConfirm(false)}
-                                    disabled={loading}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    onClick={handleUpdateRole}
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Actualizando...' : 'Confirmar'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
+
                 </>
             )}
         </AnimatePresence>

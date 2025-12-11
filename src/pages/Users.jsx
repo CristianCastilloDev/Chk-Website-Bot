@@ -4,6 +4,7 @@ import { Mail, Shield, Zap, Calendar, Search, Edit2, User, Crown, Code, DollarSi
 import DashboardLayout from '../components/DashboardLayout';
 import EditUserModal from '../components/EditUserModal';
 import UserDetailModal from '../components/UserDetailModal';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { getAllUsers } from '../services/db';
 import './Pages.css';
 
@@ -23,6 +24,9 @@ const Users = () => {
 
     const loadUsers = async () => {
         try {
+            // Delay de 2 segundos para mostrar la animación del skeleton
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
             const fetchedUsers = await getAllUsers();
             setUsers(fetchedUsers);
         } catch (error) {
@@ -151,10 +155,31 @@ const Users = () => {
     if (loading) {
         return (
             <DashboardLayout currentPage="users-all">
-                <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>Cargando usuarios...</p>
-                </div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className="page-header">
+                        <h1>Administración de Usuarios</h1>
+                        <p>Administra todos los usuarios registrados y sus suscripciones</p>
+                    </div>
+
+                    <div className="users-table glass">
+                        <div className="table-header">
+                            <div className="table-cell">Usuario</div>
+                            <div className="table-cell">Email</div>
+                            <div className="table-cell">Rol</div>
+                            <div className="table-cell">Créditos</div>
+                            <div className="table-cell">Plan</div>
+                            <div className="table-cell">Días Restantes</div>
+                            <div className="table-cell">Acciones</div>
+                        </div>
+                        <div className="table-body">
+                            <SkeletonLoader type="table-rows" columns={7} rows={5} />
+                        </div>
+                    </div>
+                </motion.div>
             </DashboardLayout>
         );
     }

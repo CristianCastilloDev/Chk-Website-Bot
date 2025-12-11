@@ -748,11 +748,10 @@
   }
 }
 
-/* ==================== TREMOR CUSTOM STYLES ==================== */
-/* Estilos personalizados para componentes de Tremor */
-
-.tremor-card {
-  background: var(--glass-bg) !important;
+/* ==================== TREMOR CHARTS STYLING ==================== */
+/* Tremor Card base styling */
+.tremor-Card-root {
+  background: var(--bg-secondary) !important;
   backdrop-filter: blur(10px) !important;
   border: 1px solid var(--glass-border) !important;
   border-radius: 12px !important;
@@ -760,33 +759,37 @@
   transition: all 0.3s ease !important;
 }
 
-.tremor-card:hover {
+.tremor-Card-root:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15) !important;
 }
 
 /* Tremor Title styling */
-.tremor-card .tremor-Title-root {
+.tremor-Title-root {
   color: var(--text-primary) !important;
   font-size: 1.1rem !important;
   font-weight: 600 !important;
   margin-bottom: 0 !important;
 }
 
-/* Tremor Chart styling */
-.tremor-card .tremor-BarChart-root,
-.tremor-card .tremor-DonutChart-root {
-  color: var(--text-primary) !important;
-}
-
-/* Tremor Axis labels */
-.tremor-card text {
+/* Tremor Chart text and labels */
+.tremor-BarChart-root text,
+.tremor-DonutChart-root text {
   fill: var(--text-secondary) !important;
   font-size: 0.875rem !important;
 }
 
-/* Tremor Tooltip */
-.tremor-Tooltip-root {
+/* Tremor Legend */
+.tremor-Legend-root {
+  color: var(--text-primary) !important;
+}
+
+.tremor-Legend-legendItem {
+  color: var(--text-secondary) !important;
+}
+
+/* Tremor Tooltip - Dark Mode */
+[data-theme="dark"] .tremor-Tooltip-root {
   background: rgba(30, 30, 46, 0.95) !important;
   border: 2px solid rgba(139, 92, 246, 0.6) !important;
   border-radius: 12px !important;
@@ -794,6 +797,67 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
-.tremor-Tooltip-root .tremor-Text-root {
+[data-theme="dark"] .tremor-Tooltip-root .tremor-Text-root {
   color: #ffffff !important;
+}
+
+/* Tremor Tooltip - Light Mode */
+[data-theme="light"] .tremor-Tooltip-root {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid rgba(139, 92, 246, 0.3) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .tremor-Tooltip-root .tremor-Text-root {
+  color: #1f2937 !important;
+}
+
+/* ==================== ANIMATIONS ==================== */
+/* Fade-in animation for charts */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Hover effect for Tremor cards */
+.tremor-Card-root {
+  transition: all 0.3s ease !important;
+}
+
+.tremor-Card-root:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2) !important;
+}
+
+
+/* Animations for loading states */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }

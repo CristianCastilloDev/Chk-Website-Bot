@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
+import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Overview from './pages/Overview';
@@ -20,11 +21,13 @@ import SMSTemporal from './pages/SMSTemporal';
 import FakeAddress from './pages/FakeAddress';
 import Settings from './pages/Settings';
 import Pricing from './pages/Pricing';
+import Orders from './pages/Orders';
 
 function App() {
   return (
     <ToastProvider>
-      <Routes>
+      <NotificationProvider>
+        <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -65,6 +68,12 @@ function App() {
         <Route path="/dashboard/sales/*" element={
           <AdminRoute>
             <Sales />
+          </AdminRoute>
+        } />
+
+        <Route path="/dashboard/orders/*" element={
+          <AdminRoute>
+            <Orders />
           </AdminRoute>
         } />
 
@@ -138,6 +147,7 @@ function App() {
         {/* Catch all - redirect to dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+      </NotificationProvider>
     </ToastProvider>
   );
 }
