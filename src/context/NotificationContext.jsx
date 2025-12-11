@@ -4,7 +4,7 @@ import { db } from '../services/firebase';
 import { useAuth } from './AuthContext';
 import { useToast } from '../components/Toast';
 import { createNotification } from '../services/db';
-import { useOrderNotifications, useUserNotifications, useLiveNotifications } from '../hooks/useRealtimeNotifications';
+import { useOrderNotifications } from '../hooks/useRealtimeNotifications';
 
 const NotificationContext = createContext();
 
