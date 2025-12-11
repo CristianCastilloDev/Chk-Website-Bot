@@ -23,13 +23,11 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Activar listeners solo para admins y devs
-  const shouldListenToEvents = (isAdmin() || isDev());
+  // Solo activar listener de órdenes para admins y devs
+  const shouldListenToOrders = (isAdmin() || isDev());
   
-  // Listeners en tiempo real para eventos
-  useOrderNotifications(shouldListenToEvents);
-  useUserNotifications(shouldListenToEvents);
-  useLiveNotifications(shouldListenToEvents);
+  // Solo listener de órdenes - Usuarios y Lives desactivados
+  useOrderNotifications(shouldListenToOrders, showInfo, playNotificationSound);
 
   // Sonidos de notificación por tipo
   const playNotificationSound = useCallback((type = 'info') => {
@@ -116,67 +114,11 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
-  // Listener en tiempo real para notificaciones del usuario
-  useEffect(() => {
-    if (!user?.id || (!isAdmin() && !isDev())) {
-      console.log('🔔 Notification listener: INACTIVE - User:', user?.id, 'isAdmin:', isAdmin(), 'isDev:', isDev());
-      return;
-    }
-
-    console.log('🔔 Notification listener: ACTIVE for user:', user.id);
-
-    const notificationsRef = collection(db, 'notifications');
-    const q = query(
-      notificationsRef,
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      console.log('🔔 Notification snapshot received, total docs:', snapshot.size);
-      
-      const notifs = [];
-      let unread = 0;
-
-      snapshot.forEach((doc) => {
-        const data = { id: doc.id, ...doc.data() };
-        notifs.push(data);
-        if (!data.read) unread++;
-      });
-
-      // Detectar nuevas notificaciones
-      snapshot.docChanges().forEach((change) => {
-        console.log('🔔 Change detected:', change.type, 'Current notifications length:', notifications.length);
-        
-        if (change.type === 'added' && notifications.length > 0) {
-          const newNotif = { id: change.doc.id, ...change.doc.data() };
-          console.log('🔔 NEW NOTIFICATION:', newNotif);
-          
-          // Mostrar toast solo si no es la carga inicial
-          showInfo({
-            title: newNotif.title,
-            description: newNotif.message
-          });
-          
-          // Reproducir sonido según el tipo de notificación
-          console.log('🔔 Playing sound for type:', newNotif.type);
-          playNotificationSound(newNotif.type);
-        }
-      });
-
-      setNotifications(notifs);
-      setUnreadCount(unread);
-      console.log('🔔 Updated notifications count:', notifs.length, 'Unread:', unread);
-    }, (error) => {
-      console.error('🔔 Error in notification listener:', error);
-    });
-
-    return () => {
-      console.log('🔔 Notification listener: CLEANUP');
-      unsubscribe();
-    };
-  }, [user, isAdmin, isDev, showInfo, playNotificationSound, notifications.length]);
+  // Sistema de notificaciones simplificado:
+  // - Solo órdenes del día
+  // - Toast directo sin guardar en Firebase
+  // - Sin panel de notificaciones persistente
+  // El listener de órdenes muestra el toast directamente
 
   // Marcar como leída
   const markAsRead = useCallback(async (notificationId) => {
