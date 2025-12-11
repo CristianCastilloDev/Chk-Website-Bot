@@ -108,11 +108,12 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
+  // TODOS LOS LISTENERS DESACTIVADOS HASTA QUE FIREBASE SE REACTIVE
   // Solo activar listener de órdenes para admins y devs
-  const shouldListenToOrders = (isAdmin() || isDev());
+  // const shouldListenToOrders = (isAdmin() || isDev());
   
-  // Solo listener de órdenes - Usuarios y Lives desactivados
-  useOrderNotifications(shouldListenToOrders, showInfo, playNotificationSound);
+  // Solo listener de órdenes - DESACTIVADO TEMPORALMENTE
+  // useOrderNotifications(shouldListenToOrders, showInfo, playNotificationSound);
 
   // Sistema de notificaciones simplificado:
   // - Solo órdenes del día
