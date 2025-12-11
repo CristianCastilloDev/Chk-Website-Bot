@@ -23,12 +23,6 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Solo activar listener de órdenes para admins y devs
-  const shouldListenToOrders = (isAdmin() || isDev());
-  
-  // Solo listener de órdenes - Usuarios y Lives desactivados
-  useOrderNotifications(shouldListenToOrders, showInfo, playNotificationSound);
-
   // Sonidos de notificación por tipo
   const playNotificationSound = useCallback((type = 'info') => {
     try {
@@ -113,6 +107,12 @@ export const NotificationProvider = ({ children }) => {
       console.error('Error playing notification sound:', error);
     }
   }, []);
+
+  // Solo activar listener de órdenes para admins y devs
+  const shouldListenToOrders = (isAdmin() || isDev());
+  
+  // Solo listener de órdenes - Usuarios y Lives desactivados
+  useOrderNotifications(shouldListenToOrders, showInfo, playNotificationSound);
 
   // Sistema de notificaciones simplificado:
   // - Solo órdenes del día
