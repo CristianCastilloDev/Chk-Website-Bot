@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { NotificationProvider } from './context/NotificationContext';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -26,9 +27,10 @@ import Orders from './pages/Orders';
 
 function App() {
   return (
-    <ToastProvider>
-      <NotificationProvider>
-        <Routes>
+    <>
+      <ToastProvider>
+        <NotificationProvider>
+          <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -151,6 +153,8 @@ function App() {
       </Routes>
       </NotificationProvider>
     </ToastProvider>
+    <SpeedInsights />
+    </>
   );
 }
 
