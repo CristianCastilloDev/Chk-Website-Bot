@@ -178,6 +178,26 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
+    // ========== TELEGRAM INTEGRATION ==========
+    
+    match /telegram_users/{linkId} {
+      // Permitir lectura a usuarios autenticados (para verificar su propio link)
+      allow read: if isAuthenticated() && 
+                     (resource.data.firebaseUid == request.auth.uid || isAdminOrDev());
+      
+      // Permitir crear link solo al usuario dueño
+      allow create: if isAuthenticated() && 
+                       request.resource.data.firebaseUid == request.auth.uid;
+      
+      // Permitir actualizar solo al usuario dueño (para chatId cuando inicia bot)
+      allow update: if isAuthenticated() && 
+                       resource.data.firebaseUid == request.auth.uid;
+      
+      // Permitir eliminar solo al usuario dueño
+      allow delete: if isAuthenticated() && 
+                       resource.data.firebaseUid == request.auth.uid;
+    }
+
 
     // ========== CATCH-ALL (DENEGAR TODO LO DEMÁS) ==========
     

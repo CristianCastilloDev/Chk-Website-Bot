@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Loader2, AtSign } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, AtSign, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { validateUsername, checkUsernameAvailable } from '../services/db';
 import './Auth.css';
 
 const Register = () => {
+    const { user, isAdmin, isDev } = useAuth();
     const [username, setUsername] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -16,6 +17,9 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
+
+    // Check if user is dev
+    const hasDevAccess = user && isDev && isDev();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -55,6 +59,40 @@ const Register = () => {
             setIsLoading(false);
         }
     };
+
+    // Show permission denied if not dev
+    if (user && !hasDevAccess) {
+        return (
+            <div className="auth-container">
+                <div className="auth-background">
+                    <div className="gradient-orb orb-1"></div>
+                    <div className="gradient-orb orb-3"></div>
+                </div>
+
+                <motion.div
+                    className="auth-card glass"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className="auth-header">
+                        <Shield size={64} className="gradient-text" style={{ margin: '0 auto 1rem' }} />
+                        <h1 className="gradient-text">Acceso Denegado</h1>
+                        <p>Solo los desarrolladores pueden registrar nuevos usuarios</p>
+                    </div>
+
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="auth-button"
+                        style={{ marginTop: '2rem' }}
+                    >
+                        Volver al Dashboard
+                        <ArrowRight size={20} />
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div className="auth-container">
