@@ -4,6 +4,7 @@ import { ToastProvider } from './components/Toast';
 import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Overview from './pages/Overview';
 import Analytics from './pages/Analytics';
 import Users from './pages/Users';
@@ -31,6 +32,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/pricing" element={<Pricing />} />
 
         {/* Protected Routes */}

@@ -104,6 +104,11 @@ const Login = () => {
                 </form>
 
                 <div className="auth-footer">
+                    <p>
+                        <button onClick={() => navigate('/forgot-password')} className="text-link">
+                            ¿Olvidaste tu contraseña?
+                        </button>
+                    </p>
                     <p>No tienes una cuenta? <button onClick={() => navigate('/register')} className="text-link">Registrate</button></p>
                 </div>
             </motion.div>

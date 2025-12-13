@@ -123,14 +123,14 @@ service cloud.firestore {
     // ========== ANALYTICS - ÓRDENES ==========
     
     match /analytics_orders/{orderId} {
-      // Solo admins y devs pueden leer
-      allow read: if isAdminOrDev();
+      // Permitir lectura al Admin SDK (bot) y a admins/devs
+      allow read: if request.auth == null || isAdminOrDev();
       
       // Solo admins pueden crear órdenes
       allow create: if isAdmin();
       
-      // Solo devs pueden actualizar (aprobar/rechazar)
-      allow update: if isDev();
+      // Admin SDK (bot) y devs pueden actualizar (aprobar/rechazar)
+      allow update: if request.auth == null || isDev();
       
       // Solo devs pueden eliminar
       allow delete: if isDev();
@@ -181,17 +181,20 @@ service cloud.firestore {
     // ========== TELEGRAM INTEGRATION ==========
     
     match /telegram_users/{linkId} {
-      // Permitir lectura a usuarios autenticados (para verificar su propio link)
-      allow read: if isAuthenticated() && 
-                     (resource.data.firebaseUid == request.auth.uid || isAdminOrDev());
+      // Permitir lectura a usuarios autenticados y Admin SDK (bot)
+      allow read: if request.auth == null ||
+                     (isAuthenticated() && 
+                      (resource.data.firebaseUid == request.auth.uid || isAdminOrDev()));
       
-      // Permitir crear link solo al usuario dueño
-      allow create: if isAuthenticated() && 
-                       request.resource.data.firebaseUid == request.auth.uid;
+      // Permitir crear link al usuario dueño o Admin SDK (bot)
+      allow create: if request.auth == null ||
+                       (isAuthenticated() && 
+                        request.resource.data.firebaseUid == request.auth.uid);
       
-      // Permitir actualizar solo al usuario dueño (para chatId cuando inicia bot)
-      allow update: if isAuthenticated() && 
-                       resource.data.firebaseUid == request.auth.uid;
+      // Permitir actualizar al usuario dueño o Admin SDK (bot)
+      allow update: if request.auth == null ||
+                       (isAuthenticated() && 
+                        resource.data.firebaseUid == request.auth.uid);
       
       // Permitir eliminar solo al usuario dueño
       allow delete: if isAuthenticated() && 
@@ -215,6 +218,54 @@ service cloud.firestore {
       // Permitir eliminar solo al usuario dueño o devs
       allow delete: if isAuthenticated() && 
                        (resource.data.userId == request.auth.uid || isDev());
+    }
+
+    // ========== PENDING REGISTRATIONS ==========
+
+    match /pending_registrations/{regId} {
+      // Permitir crear sin autenticación (registro público)
+      allow create: if true;
+
+      // Permitir leer solo al Admin SDK (bot)
+      allow read: if request.auth == null;
+
+      // Permitir actualizar solo al Admin SDK (bot)
+      allow update: if request.auth == null;
+
+      // Permitir eliminar solo al Admin SDK (bot) para limpieza
+      allow delete: if request.auth == null;
+    }
+
+    // ========== PENDING PASSWORD RESETS ==========
+
+    match /pending_password_resets/{resetId} {
+      // Permitir crear sin autenticación (recuperación pública)
+      allow create: if true;
+
+      // Permitir leer solo al Admin SDK (bot)
+      allow read: if request.auth == null;
+
+      // Permitir actualizar solo al Admin SDK (bot)
+      allow update: if request.auth == null;
+
+      // Permitir eliminar solo al Admin SDK (bot) para limpieza
+      allow delete: if request.auth == null;
+    }
+
+    // ========== PENDING PASSWORD UPDATES ==========
+
+    match /pending_password_updates/{updateId} {
+      // Permitir crear sin autenticación (desde página de recuperación)
+      allow create: if true;
+
+      // Permitir leer solo al Admin SDK (bot)
+      allow read: if request.auth == null;
+
+      // Permitir actualizar solo al Admin SDK (bot)
+      allow update: if request.auth == null;
+
+      // Permitir eliminar solo al Admin SDK (bot)
+      allow delete: if request.auth == null;
     }
 
     // ========== CATCH-ALL (DENEGAR TODO LO DEMÁS) ==========
