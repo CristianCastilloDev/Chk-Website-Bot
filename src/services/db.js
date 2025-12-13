@@ -1692,7 +1692,7 @@ export const requestPasswordChange = async (userId) => {
     
     // Get Telegram link
     const telegramLink = await getTelegramLink(userId);
-    if (!telegramLink || !telegramLink.chatId) {
+    if (!telegramLink) {
       throw new Error('Telegram no vinculado. Por favor vincula tu cuenta de Telegram primero.');
     }
     
@@ -1701,6 +1701,7 @@ export const requestPasswordChange = async (userId) => {
     await setDoc(changeRef, {
       userId,
       code,
+      telegramId: telegramLink.telegramId,
       createdAt: serverTimestamp(),
       expiresAt: Timestamp.fromMillis(Date.now() + 10 * 60 * 1000), // 10 minutes
       used: false
@@ -1708,12 +1709,13 @@ export const requestPasswordChange = async (userId) => {
     
     // TODO: Send code to Telegram bot
     // This will be handled by the Telegram bot service
-    console.log(`🔐 Password change code for user ${userId}: ${code}`);
+    console.log(`🔐 Password change code for user ${userId} (Telegram: ${telegramLink.telegramId}): ${code}`);
     
     return {
       success: true,
       message: 'Código de confirmación enviado a tu Telegram',
-      changeId: changeRef.id
+      changeId: changeRef.id,
+      code: code // Temporary: return code for testing
     };
   } catch (error) {
     console.error('Error requesting password change:', error);
