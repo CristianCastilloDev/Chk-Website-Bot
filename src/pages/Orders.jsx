@@ -8,7 +8,9 @@ import {
     Plus,
     Filter,
     Search,
-    RefreshCw
+    RefreshCw,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { Card, Title } from '@tremor/react';
 import DashboardLayout from '../components/DashboardLayout';
@@ -28,6 +30,8 @@ const Orders = () => {
     const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
     
     // Form states
     const [formData, setFormData] = useState({
@@ -93,6 +97,7 @@ const Orders = () => {
         }
 
         setFilteredOrders(filtered);
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     const handleApprove = async (orderId) => {
@@ -254,6 +259,24 @@ const Orders = () => {
                 {config.label}
             </span>
         );
+    };
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const goToPrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
     };
 
     const stats = {
@@ -591,7 +614,7 @@ const Orders = () => {
                 {/* Orders Table */}
                 <Card>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <Title>Órdenes ({filteredOrders.length})</Title>
+                        <Title>Órdenes ({filteredOrders.length}) - Página {currentPage} de {totalPages || 1}</Title>
                         <button
                             onClick={loadOrders}
                             style={{
@@ -632,7 +655,7 @@ const Orders = () => {
                                 <tbody>
                                     <tr>
                                         <td colSpan="8" style={{ padding: 0 }}>
-                                            <SkeletonLoader type="table-rows" columns={8} rows={5} />
+                                            <SkeletonLoader type="table-rows" columns={8} rows={10} />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -658,7 +681,7 @@ const Orders = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredOrders.map((order) => (
+                                    {paginatedOrders.map((order) => (
                                         <tr 
                                             key={order.id}
                                             style={{ 
@@ -758,6 +781,80 @@ const Orders = () => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {!loading && filteredOrders.length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: '1.5rem',
+                            padding: '1rem',
+                            background: 'var(--bg-secondary)',
+                            borderRadius: '12px',
+                            border: '1px solid var(--glass-border)'
+                        }}>
+                            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                Mostrando {startIndex + 1} - {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} órdenes
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={goToPrevPage}
+                                    disabled={currentPage === 1}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem',
+                                        background: currentPage === 1 ? 'var(--bg-secondary)' : 'var(--primary)',
+                                        color: currentPage === 1 ? 'var(--text-secondary)' : 'white',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '8px',
+                                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        transition: 'all 0.2s',
+                                        opacity: currentPage === 1 ? 0.5 : 1
+                                    }}
+                                >
+                                    <ChevronLeft size={16} />
+                                    Anterior
+                                </button>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 1rem',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    color: 'var(--text-primary)'
+                                }}>
+                                    {currentPage} / {totalPages}
+                                </div>
+                                <button
+                                    onClick={goToNextPage}
+                                    disabled={currentPage === totalPages}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem',
+                                        background: currentPage === totalPages ? 'var(--bg-secondary)' : 'var(--primary)',
+                                        color: currentPage === totalPages ? 'var(--text-secondary)' : 'white',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '8px',
+                                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        transition: 'all 0.2s',
+                                        opacity: currentPage === totalPages ? 0.5 : 1
+                                    }}
+                                >
+                                    Siguiente
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
                         </div>
                     )}
                 </Card>
