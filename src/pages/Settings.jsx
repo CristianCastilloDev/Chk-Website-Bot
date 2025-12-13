@@ -13,6 +13,7 @@ import {
     requestPasswordChange,
     confirmPasswordChange
 } from '../services/db';
+import ProfilePhotoUpload from '../components/ProfilePhotoUpload';
 import './Pages.css';
 
 const Settings = () => {
@@ -180,6 +181,29 @@ const Settings = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="settings-form-minimal">
+                            {/* Profile Photo */}
+                            <div className="form-field-minimal" style={{ alignItems: 'center' }}>
+                                <label>Foto de Perfil</label>
+                                <ProfilePhotoUpload 
+                                    currentPhoto={user?.photoURL}
+                                    userId={user?.id}
+                                    onPhotoUpdate={(newPhoto) => {
+                                        // Refresh user data or update local state
+                                        console.log('Photo updated:', newPhoto ? 'New photo' : 'Photo removed');
+                                    }}
+                                />
+                                {user?.photoSource === 'telegram' && (
+                                    <p style={{ 
+                                        fontSize: '0.85rem', 
+                                        color: 'var(--text-secondary)',
+                                        marginTop: 'var(--space-sm)',
+                                        textAlign: 'center'
+                                    }}>
+                                        📱 Foto importada desde Telegram
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="form-field-minimal">
                                 <label>Nombre</label>
                                 <input
