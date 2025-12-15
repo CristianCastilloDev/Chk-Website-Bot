@@ -72,7 +72,7 @@ const LivesAdmin = () => {
         if (filterUser) {
             filtered = filtered.filter(live =>
                 live.userName?.toLowerCase().includes(filterUser.toLowerCase()) ||
-                live.userEmail?.toLowerCase().includes(filterUser.toLowerCase())
+                live.telegramId?.toString().includes(filterUser)
             );
         }
 
@@ -107,9 +107,9 @@ const LivesAdmin = () => {
     };
 
     const exportToCSV = () => {
-        const csv = 'Usuario,Email,Tarjeta,Gate,Tipo,Fecha,Hora,Tiempo,Status,Resultado\n' +
+        const csv = 'Usuario,Telegram ID,Tarjeta,Gate,Tipo,Fecha,Hora,Tiempo,Status,Resultado\n' +
             filteredLives.map(live =>
-                `${live.userName},${live.userEmail},${live.card},${live.gateName},${live.gateType},${live.date},${live.hour},${live.responseTime}s,${live.status},${live.result}`
+                `${live.userName},${live.telegramId || 'N/A'},${live.card},${live.gateName},${live.gateType},${live.date},${live.hour},${live.responseTime}s,${live.status},${live.result}`
             ).join('\n');
 
         const blob = new Blob([csv], { type: 'text/csv' });
@@ -176,70 +176,77 @@ const LivesAdmin = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="stats-grid" style={{ marginBottom: '2rem' }}>
-                    <motion.div className="stat-card glass">
-                        <div className="stat-icon gradient-accent">
-                            <Database size={24} />
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(6, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    {/* Total Lives */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Database size={18} style={{ color: '#6366f1' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Lives</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{totalLives}</h3>
-                            <p className="stat-label">Total Lives</p>
-                        </div>
-                    </motion.div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#6366f1' }}>
+                            {totalLives}
+                        </p>
+                    </div>
 
-                    <motion.div className="stat-card glass">
-                        <div className="stat-icon gradient-primary">
-                            <Calendar size={24} />
+                    {/* Lives Hoy */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Calendar size={18} style={{ color: '#10b981' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Hoy</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{livesToday}</h3>
-                            <p className="stat-label">Hoy</p>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#10b981' }}>
+                            {livesToday}
+                        </p>
+                    </div>
+
+                    {/* Usuarios Activos */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <User size={18} style={{ color: '#3b82f6' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuarios</h3>
                         </div>
-                    </motion.div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#3b82f6' }}>
+                            {uniqueUsers}
+                        </p>
+                    </div>
 
-                    <motion.div className="stat-card glass">
-                        <div className="stat-icon gradient-secondary">
-                            <User size={24} />
+                    {/* Stripe Lives */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <CreditCard size={18} style={{ color: '#6366f1' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Stripe</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{uniqueUsers}</h3>
-                            <p className="stat-label">Usuarios Activos</p>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#6366f1' }}>
+                            {stats?.livesByType?.stripe || 0}
+                        </p>
+                    </div>
+
+                    {/* PayPal Lives */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Wallet size={18} style={{ color: '#0070ba' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>PayPal</h3>
                         </div>
-                    </motion.div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#0070ba' }}>
+                            {stats?.livesByType?.paypal || 0}
+                        </p>
+                    </div>
 
-                    {stats && (
-                        <>
-                            <motion.div className="stat-card glass">
-                                <div className="stat-icon" style={{ background: '#6366f1' }}>
-                                    <img src="https://cdn.simpleicons.org/stripe/white" alt="Stripe" style={{ width: '24px', height: '24px' }} />
-                                </div>
-                                <div className="stat-content">
-                                    <h3 className="stat-value">{stats.livesByType?.stripe || 0}</h3>
-                                    <p className="stat-label">Stripe</p>
-                                </div>
-                            </motion.div>
-
-                            <motion.div className="stat-card glass">
-                                <div className="stat-icon" style={{ background: '#0070ba' }}>
-                                    <img src="https://cdn.simpleicons.org/paypal/white" alt="PayPal" style={{ width: '24px', height: '24px' }} />
-                                </div>
-                                <div className="stat-content">
-                                    <h3 className="stat-value">{stats.livesByType?.paypal || 0}</h3>
-                                    <p className="stat-label">PayPal</p>
-                                </div>
-                            </motion.div>
-
-                            <motion.div className="stat-card glass">
-                                <div className="stat-icon" style={{ background: '#00c853' }}>
-                                    <img src="https://cdn.simpleicons.org/braintree/white" alt="Braintree" style={{ width: '24px', height: '24px' }} />
-                                </div>
-                                <div className="stat-content">
-                                    <h3 className="stat-value">{stats.livesByType?.braintree || 0}</h3>
-                                    <p className="stat-label">Braintree</p>
-                                </div>
-                            </motion.div>
-                        </>
-                    )}
+                    {/* Braintree Lives */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Shield size={18} style={{ color: '#00c853' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Braintree</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#00c853' }}>
+                            {stats?.livesByType?.braintree || 0}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Filters */}
@@ -270,7 +277,7 @@ const LivesAdmin = () => {
                                 <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
                                 <input
                                     type="text"
-                                    placeholder="Buscar por usuario o email..."
+                                    placeholder="Buscar por usuario o Telegram ID..."
                                     value={filterUser}
                                     onChange={(e) => setFilterUser(e.target.value)}
                                     style={{
@@ -389,18 +396,32 @@ const LivesAdmin = () => {
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.02 }}
-                                            style={{ borderBottom: '1px solid var(--glass-border)' }}
+                                            style={{ 
+                                                background: live.gateType === 'stripe' ? 'rgba(99, 102, 241, 0.05)' :
+                                                           live.gateType === 'paypal' ? 'rgba(0, 112, 186, 0.05)' :
+                                                           'rgba(0, 200, 83, 0.05)',
+                                                borderRadius: '12px',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = 'none';
+                                            }}
                                         >
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
                                                 <div>
                                                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{live.userName}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{live.userEmail}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>ID: {live.telegramId || 'N/A'}</div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                                            <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                                                 {live.cardMasked}
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <div style={{
                                                         width: '32px',
@@ -422,19 +443,19 @@ const LivesAdmin = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div>
                                                     <div style={{ fontSize: '0.9rem' }}>{live.date}</div>
                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{live.hour}</div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                     <Clock size={14} />
                                                     {live.responseTime}s
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
                                                 <button
                                                     onClick={() => copyToClipboard(live.card)}
                                                     className="btn-secondary"

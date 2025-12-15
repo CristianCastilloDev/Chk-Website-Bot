@@ -107,7 +107,7 @@ const ProfilePhotoUpload = ({ currentPhoto, userId, onPhotoUpdate }) => {
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                     >
-                        <img src={preview} alt="Profile" />
+                        <img src={preview} alt="Profile" loading="lazy" decoding="async" />
                     </motion.div>
                 ) : (
                     <motion.div 
@@ -167,7 +167,7 @@ const ProfilePhotoUpload = ({ currentPhoto, userId, onPhotoUpdate }) => {
 
                             <div className="modal-body">
                                 <div className="preview-large">
-                                    <img src={preview} alt="Preview" />
+                                    <img src={preview} alt="Preview" loading="lazy" decoding="async" />
                                 </div>
                             </div>
 

@@ -29,13 +29,13 @@
     width: 100%;
     background: linear-gradient(
         90deg,
-        var(--glass-border) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        var(--glass-border) 100%
+        rgba(128, 128, 128, 0.2) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(128, 128, 128, 0.2) 100%
     );
     background-size: 200% 100%;
     border-radius: 4px;
-    animation: shimmer 1s ease-in-out infinite;
+    animation: shimmer 3s ease-in-out infinite;
 }
 
 .skeleton-line.short {
@@ -53,7 +53,7 @@
 .skeleton-table-row-card {
     display: flex;
     gap: 1rem;
-    padding: 0.75rem;
+    padding: 1rem;
     background: rgba(128, 128, 128, 0.1);
     border-radius: 12px;
     align-items: center;
@@ -68,13 +68,13 @@
     height: 16px;
     background: linear-gradient(
         90deg,
-        var(--glass-border) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        var(--glass-border) 100%
+        rgba(128, 128, 128, 0.2) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(128, 128, 128, 0.2) 100%
     );
     background-size: 200% 100%;
     border-radius: 4px;
-    animation: shimmer 1s ease-in-out infinite;
+    animation: shimmer 3s ease-in-out infinite;
 }
 
 /* Stats Grid Skeleton */

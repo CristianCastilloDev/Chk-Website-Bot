@@ -60,12 +60,48 @@ const Orders = () => {
             const ordersRef = collection(db, 'analytics_orders');
             const snapshot = await getDocs(ordersRef);
             
-            const ordersData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: doc.data().createdAt?.toDate(),
-                approvedAt: doc.data().approvedAt?.toDate(),
-                rejectedAt: doc.data().rejectedAt?.toDate()
+            const ordersData = await Promise.all(snapshot.docs.map(async (orderDoc) => {
+                const orderData = orderDoc.data();
+                let adminPhoto = null;
+                let userPhoto = null;
+                
+                // Fetch admin photo
+                if (orderData.createdBy) {
+                    try {
+                        const usersRef = collection(db, 'users');
+                        const usersSnapshot = await getDocs(usersRef);
+                        const adminUser = usersSnapshot.docs.find(doc => doc.data().name === orderData.createdBy);
+                        if (adminUser) {
+                            adminPhoto = adminUser.data().photoURL || null;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching admin photo:', error);
+                    }
+                }
+                
+                // Fetch target user photo
+                if (orderData.targetUser) {
+                    try {
+                        const usersRef = collection(db, 'users');
+                        const usersSnapshot = await getDocs(usersRef);
+                        const targetUser = usersSnapshot.docs.find(doc => doc.data().name === orderData.targetUser);
+                        if (targetUser) {
+                            userPhoto = targetUser.data().photoURL || null;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user photo:', error);
+                    }
+                }
+                
+                return {
+                    id: orderDoc.id,
+                    ...orderData,
+                    adminPhoto,
+                    userPhoto,
+                    createdAt: orderData.createdAt?.toDate(),
+                    approvedAt: orderData.approvedAt?.toDate(),
+                    rejectedAt: orderData.rejectedAt?.toDate()
+                };
             }));
 
             // Ordenar por fecha (más recientes primero)
@@ -653,11 +689,49 @@ const Orders = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td colSpan="8" style={{ padding: 0 }}>
-                                            <SkeletonLoader type="table-rows" columns={8} rows={10} />
-                                        </td>
-                                    </tr>
+                                    {[...Array(10)].map((_, index) => (
+                                        <tr 
+                                            key={index}
+                                            style={{ 
+                                                background: 'rgba(128, 128, 128, 0.1)',
+                                                borderRadius: '12px'
+                                            }}
+                                        >
+                                            <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div className="skeleton-text" style={{ width: '32px', height: '32px', borderRadius: '50%' }}></div>
+                                                    <div className="skeleton-text" style={{ width: '60%', height: '16px' }}></div>
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: 600 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div className="skeleton-text" style={{ width: '32px', height: '32px', borderRadius: '50%' }}></div>
+                                                    <div className="skeleton-text" style={{ width: '50%', height: '16px' }}></div>
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div className="skeleton-text" style={{ width: '80px', height: '20px', borderRadius: '6px' }}></div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontSize: '0.875rem', maxWidth: '200px' }}>
+                                                <div className="skeleton-text" style={{ width: '90%', height: '14px' }}></div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: 600 }}>
+                                                <div className="skeleton-text" style={{ width: '50px', height: '16px' }}></div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>
+                                                <div className="skeleton-text" style={{ width: '70px', height: '14px' }}></div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div className="skeleton-text" style={{ width: '80px', height: '24px', borderRadius: '12px' }}></div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                    <div className="skeleton-text" style={{ width: '70px', height: '28px', borderRadius: '6px' }}></div>
+                                                    <div className="skeleton-text" style={{ width: '70px', height: '28px', borderRadius: '6px' }}></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
@@ -700,8 +774,50 @@ const Orders = () => {
                                                 e.currentTarget.style.boxShadow = 'none';
                                             }}
                                         >
-                                            <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>{order.createdBy}</td>
-                                            <td style={{ padding: '0.75rem', fontWeight: 600 }}>{order.targetUser}</td>
+                                            <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div style={{
+                                                        width: '32px',
+                                                        height: '32px',
+                                                        borderRadius: '50%',
+                                                        background: order.adminPhoto ? `url(${order.adminPhoto})` : '#6366f1',
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 600,
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {!order.adminPhoto && (order.createdBy?.charAt(0) || 'A')}
+                                                    </div>
+                                                    <span>{order.createdBy}</span>
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: 600 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <div style={{
+                                                        width: '32px',
+                                                        height: '32px',
+                                                        borderRadius: '50%',
+                                                        background: order.userPhoto ? `url(${order.userPhoto})` : '#10b981',
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 600,
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {!order.userPhoto && (order.targetUser?.charAt(0) || 'U')}
+                                                    </div>
+                                                    <span>{order.targetUser}</span>
+                                                </div>
+                                            </td>
                                             <td style={{ padding: '0.75rem' }}>
                                                 <span style={{
                                                     padding: '0.25rem 0.5rem',

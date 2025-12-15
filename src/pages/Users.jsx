@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Shield, Zap, Calendar, Search, Edit2, User, Crown, Code, DollarSign, Info } from 'lucide-react';
+import { Mail, Shield, Zap, Calendar, Search, Edit2, User, Crown, Code, DollarSign, Info, Users as UsersIcon, Award, UserCheck, UserX } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import EditUserModal from '../components/EditUserModal';
 import UserDetailModal from '../components/UserDetailModal';
@@ -17,6 +17,13 @@ const Users = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUserDetail, setSelectedUserDetail] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [stats, setStats] = useState({
+        admins: 0,
+        devs: 0,
+        members: 0,
+        activePlans: 0,
+        expiredPlans: 0
+    });
 
     useEffect(() => {
         loadUsers();
@@ -29,6 +36,25 @@ const Users = () => {
             
             const fetchedUsers = await getAllUsers();
             setUsers(fetchedUsers);
+            
+            // Calculate statistics
+            const admins = fetchedUsers.filter(u => u.role === 'admin').length;
+            const devs = fetchedUsers.filter(u => u.role === 'dev').length;
+            const members = fetchedUsers.filter(u => u.role !== 'admin' && u.role !== 'dev').length;
+            
+            const now = new Date();
+            const activePlans = fetchedUsers.filter(u => {
+                if (u.role === 'admin' || u.role === 'dev') return false;
+                const expiresAt = u.planExpiresAt?.toDate ? u.planExpiresAt.toDate() : null;
+                return expiresAt && expiresAt > now;
+            }).length;
+            
+            const expiredPlans = fetchedUsers.filter(u => {
+                const expiresAt = u.planExpiresAt?.toDate ? u.planExpiresAt.toDate() : null;
+                return expiresAt && expiresAt < now;
+            }).length;
+            
+            setStats({ admins, devs, members, activePlans, expiredPlans });
         } catch (error) {
             console.error('Error loading users:', error);
         } finally {
@@ -196,6 +222,69 @@ const Users = () => {
                     <p>Administra todos los usuarios registrados y sus suscripciones</p>
                 </div>
 
+                {/* Statistics Cards */}
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(5, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    {/* Total Admins */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Shield size={18} style={{ color: '#ef4444' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admins</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ef4444' }}>
+                            {stats.admins}
+                        </p>
+                    </div>
+
+                    {/* Total Devs */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Code size={18} style={{ color: '#8b5cf6' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Devs</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#8b5cf6' }}>
+                            {stats.devs}
+                        </p>
+                    </div>
+
+                    {/* Total Members */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <UsersIcon size={18} style={{ color: '#3b82f6' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Miembros</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#3b82f6' }}>
+                            {stats.members}
+                        </p>
+                    </div>
+
+                    {/* Active Plans */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <UserCheck size={18} style={{ color: '#10b981' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Planes Activos</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#10b981' }}>
+                            {stats.activePlans}
+                        </p>
+                    </div>
+
+                    {/* Expired Plans */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <UserX size={18} style={{ color: '#f59e0b' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Planes Expirados</h3>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#f59e0b' }}>
+                            {stats.expiredPlans}
+                        </p>
+                    </div>
+                </div>
+
                 <div className="users-filters glass">
                     <div className="search-box">
                         <Search size={20} />
@@ -252,9 +341,14 @@ const Users = () => {
                                         <div className="user-cell">
                                             <div
                                                 className="user-avatar-small"
-                                                style={{ background: user.avatar?.color || '#6366f1' }}
+                                                style={{ 
+                                                    background: user.photoURL ? 'transparent' : (user.avatar?.color || '#6366f1'),
+                                                    backgroundImage: user.photoURL ? `url(${user.photoURL})` : 'none',
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center'
+                                                }}
                                             >
-                                                {user.avatar?.initials || 'U'}
+                                                {!user.photoURL && (user.avatar?.initials || user.name?.charAt(0) || 'U')}
                                             </div>
                                             <span className="user-name-text">{user.name}</span>
                                         </div>
@@ -262,7 +356,7 @@ const Users = () => {
                                     <div className="table-cell">
                                         <div className="email-cell">
                                             <Mail size={16} />
-                                            {user.email}
+                                            {user.telegramId || 'N/A'}
                                         </div>
                                     </div>
                                     <div className="table-cell">

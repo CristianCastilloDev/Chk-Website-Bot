@@ -328,9 +328,14 @@ const DashboardLayout = ({ children, currentPage }) => {
                             <div className="user-profile">
                                 <div
                                     className="user-avatar"
-                                    style={{ background: user?.avatar?.color || '#6366f1' }}
+                                    style={{ 
+                                        background: user?.photoURL ? 'transparent' : (user?.avatar?.color || '#6366f1'),
+                                        backgroundImage: user?.photoURL ? `url(${user.photoURL})` : 'none',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
                                 >
-                                    {user?.avatar?.initials || 'U'}
+                                    {!user?.photoURL && (user?.avatar?.initials || user?.name?.charAt(0) || 'U')}
                                 </div>
                                 <div className="user-info">
                                     <div className="user-name">{user?.name || 'User'}</div>

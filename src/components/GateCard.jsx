@@ -10,6 +10,8 @@ const GateCard = ({ gate, selected, onSelect, showStatus = true }) => {
                     <img
                         src="https://cdn.simpleicons.org/stripe/white"
                         alt="Stripe"
+                        loading="lazy"
+                        decoding="async"
                         style={{ width: '24px', height: '24px' }}
                     />
                 );
@@ -18,6 +20,8 @@ const GateCard = ({ gate, selected, onSelect, showStatus = true }) => {
                     <img
                         src="https://cdn.simpleicons.org/paypal/white"
                         alt="PayPal"
+                        loading="lazy"
+                        decoding="async"
                         style={{ width: '24px', height: '24px' }}
                     />
                 );
@@ -26,6 +30,8 @@ const GateCard = ({ gate, selected, onSelect, showStatus = true }) => {
                     <img
                         src="https://cdn.simpleicons.org/braintree/white"
                         alt="Braintree"
+                        loading="lazy"
+                        decoding="async"
                         style={{ width: '24px', height: '24px' }}
                     />
                 );

@@ -141,6 +141,9 @@ const MyLives = () => {
     const mostUsedGate = Object.keys(gateUsage).reduce((a, b) =>
         gateUsage[a] > gateUsage[b] ? a : b, 'stripe'
     );
+    const avgResponseTime = lives.length > 0 
+        ? (lives.reduce((sum, live) => sum + (live.responseTime || 0), 0) / lives.length).toFixed(2)
+        : 0;
 
     return (
         <DashboardLayout currentPage="my-lives">
@@ -151,35 +154,56 @@ const MyLives = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="stats-grid" style={{ marginBottom: '2rem' }}>
-                    <div className="stat-card glass">
-                        <div className="stat-icon gradient-accent">
-                            <Heart size={24} />
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    {/* Total Lives */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Heart size={18} style={{ color: '#ef4444' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Lives</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{totalLives}</h3>
-                            <p className="stat-label">Total Lives</p>
-                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#ef4444' }}>
+                            {totalLives}
+                        </p>
                     </div>
 
-                    <div className="stat-card glass">
-                        <div className="stat-icon gradient-primary">
-                            <Calendar size={24} />
+                    {/* Lives Hoy */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Calendar size={18} style={{ color: '#10b981' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Hoy</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{livesToday}</h3>
-                            <p className="stat-label">Hoy</p>
-                        </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#10b981' }}>
+                            {livesToday}
+                        </p>
                     </div>
 
-                    <div className="stat-card glass">
-                        <div className="stat-icon gradient-secondary" style={{ background: getGateColor(mostUsedGate) }}>
-                            {getGateIcon(mostUsedGate)}
+                    {/* Gate Más Usado */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <div style={{ color: getGateColor(mostUsedGate) }}>
+                                {getGateIcon(mostUsedGate)}
+                            </div>
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Más Usado</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value" style={{ textTransform: 'capitalize' }}>{mostUsedGate}</h3>
-                            <p className="stat-label">Más Usado</p>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: getGateColor(mostUsedGate), textTransform: 'capitalize' }}>
+                            {mostUsedGate}
+                        </p>
+                    </div>
+
+                    {/* Promedio Tiempo */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Clock size={18} style={{ color: '#f59e0b' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Promedio</h3>
                         </div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#f59e0b' }}>
+                            {avgResponseTime}s
+                        </p>
                     </div>
                 </div>
 
@@ -302,15 +326,29 @@ const MyLives = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredLives.map((live) => (
+                                    {filteredLives.map((live, index) => (
                                         <tr
                                             key={live.id}
-                                            style={{ borderBottom: '1px solid var(--glass-border)' }}
+                                            style={{ 
+                                                background: live.gateType === 'stripe' ? 'rgba(99, 102, 241, 0.05)' :
+                                                           live.gateType === 'paypal' ? 'rgba(0, 112, 186, 0.05)' :
+                                                           'rgba(0, 200, 83, 0.05)',
+                                                borderRadius: '12px',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = 'none';
+                                            }}
                                         >
-                                            <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                                            <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', fontFamily: 'monospace', fontSize: '0.9rem' }}>
                                                 {live.cardMasked}
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                     <div style={{
                                                         width: '32px',
@@ -332,19 +370,19 @@ const MyLives = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div>
                                                     <div style={{ fontSize: '0.9rem' }}>{live.date}</div>
                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{live.hour}</div>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                     <Clock size={14} />
                                                     {live.responseTime}s
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '0.75rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
                                                 <button
                                                     onClick={() => copyToClipboard(live.card)}
                                                     className="btn-secondary"

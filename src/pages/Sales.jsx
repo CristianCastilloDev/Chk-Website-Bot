@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, Calendar, User, Filter, Search, TrendingUp } from 'lucide-react';
+import { DollarSign, Calendar, User, Filter, Search, TrendingUp, Award, BarChart3 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import UserTooltip from '../components/UserTooltip';
 import { getAllSales, getUserDocument } from '../services/db';
@@ -14,6 +14,12 @@ const Sales = () => {
     const [hoveredUser, setHoveredUser] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [tooltipUser, setTooltipUser] = useState(null);
+    const [stats, setStats] = useState({
+        totalRevenue: 0,
+        totalSales: 0,
+        averageSale: 0,
+        topSeller: null
+    });
 
     useEffect(() => {
         loadSales();
@@ -23,6 +29,25 @@ const Sales = () => {
         try {
             const fetchedSales = await getAllSales();
             setSales(fetchedSales);
+            
+            // Calculate statistics
+            const totalRevenue = fetchedSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
+            const totalSales = fetchedSales.length;
+            const averageSale = totalSales > 0 ? totalRevenue / totalSales : 0;
+            
+            // Find top seller (admin with most sales)
+            const salesByAdmin = {};
+            fetchedSales.forEach(sale => {
+                const adminName = sale.adminName || 'Unknown';
+                if (!salesByAdmin[adminName]) {
+                    salesByAdmin[adminName] = { count: 0, name: adminName, photo: sale.adminPhoto };
+                }
+                salesByAdmin[adminName].count++;
+            });
+            
+            const topSeller = Object.values(salesByAdmin).sort((a, b) => b.count - a.count)[0] || null;
+            
+            setStats({ totalRevenue, totalSales, averageSale, topSeller });
         } catch (error) {
             console.error('Error loading sales:', error);
         } finally {
@@ -108,53 +133,82 @@ const Sales = () => {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="stats-grid">
-                    <motion.div
-                        className="stat-card glass"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <div className="stat-icon gradient-primary">
-                            <TrendingUp size={24} />
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                }}>
+                    {/* Total Revenue */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <DollarSign size={18} style={{ color: '#10b981' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Revenue Total</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{filteredSales.length}</h3>
-                            <p className="stat-label">Total Transacciones</p>
-                        </div>
-                    </motion.div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#10b981' }}>
+                            ${stats.totalRevenue.toFixed(2)}
+                        </p>
+                    </div>
 
-                    <motion.div
-                        className="stat-card glass"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <div className="stat-icon gradient-accent">
-                            <DollarSign size={24} />
+                    {/* Total Sales */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <TrendingUp size={18} style={{ color: '#3b82f6' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Ventas</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">{getTotalCredits().toLocaleString()}</h3>
-                            <p className="stat-label">Créditos Vendidos</p>
-                        </div>
-                    </motion.div>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#3b82f6' }}>
+                            {stats.totalSales}
+                        </p>
+                    </div>
 
-                    <motion.div
-                        className="stat-card glass"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <div className="stat-icon gradient-warm">
-                            <Calendar size={24} />
+                    {/* Average Sale */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <BarChart3 size={18} style={{ color: '#f59e0b' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Promedio</h3>
                         </div>
-                        <div className="stat-content">
-                            <h3 className="stat-value">
-                                {filteredSales.filter(s => s.type === 'plan').length}
-                            </h3>
-                            <p className="stat-label">Planes Vendidos</p>
+                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: '#f59e0b' }}>
+                            ${stats.averageSale.toFixed(2)}
+                        </p>
+                    </div>
+
+                    {/* Top Seller */}
+                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <Award size={18} style={{ color: '#8b5cf6' }} />
+                            <h3 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Top Seller</h3>
                         </div>
-                    </motion.div>
+                        {stats.topSeller ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    background: stats.topSeller.photo ? `url(${stats.topSeller.photo})` : '#8b5cf6',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600
+                                }}>
+                                    {!stats.topSeller.photo && (stats.topSeller.name?.charAt(0) || 'T')}
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                        {stats.topSeller.name}
+                                    </p>
+                                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        {stats.topSeller.count} ventas
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Sin datos</p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Filters */}

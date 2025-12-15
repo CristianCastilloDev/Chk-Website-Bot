@@ -1431,14 +1431,52 @@ export const getCustomerOrders = async (limit = 10) => {
       .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
       .slice(0, limit);
     
-    return orders.map(order => ({
-      id: order.id,
-      profile: order.createdBy,
-      address: order.targetUser,
-      date: order.createdAt.toDate().toLocaleDateString('es-ES'),
-      status: order.status,
-      price: `$${order.price}`
+    // Fetch user photos for each order
+    const ordersWithPhotos = await Promise.all(orders.map(async (order) => {
+      let adminPhoto = null;
+      let userPhoto = null;
+      
+      // Fetch admin photo
+      if (order.createdBy) {
+        try {
+          const usersRef = collection(db, 'users');
+          const q = query(usersRef, where('name', '==', order.createdBy));
+          const userSnapshot = await getDocs(q);
+          if (!userSnapshot.empty) {
+            adminPhoto = userSnapshot.docs[0].data().photoURL || null;
+          }
+        } catch (error) {
+          console.error('Error fetching admin photo:', error);
+        }
+      }
+      
+      // Fetch target user photo
+      if (order.targetUser) {
+        try {
+          const usersRef = collection(db, 'users');
+          const q = query(usersRef, where('name', '==', order.targetUser));
+          const userSnapshot = await getDocs(q);
+          if (!userSnapshot.empty) {
+            userPhoto = userSnapshot.docs[0].data().photoURL || null;
+          }
+        } catch (error) {
+          console.error('Error fetching user photo:', error);
+        }
+      }
+      
+      return {
+        id: order.id,
+        profile: order.createdBy,
+        profilePhoto: adminPhoto,
+        address: order.targetUser,
+        addressPhoto: userPhoto,
+        date: order.createdAt.toDate().toLocaleDateString('es-ES'),
+        status: order.status,
+        price: `$${order.price}`
+      };
     }));
+    
+    return ordersWithPhotos;
   } catch (error) {
     console.error('Error getting customer orders:', error);
     return [];
