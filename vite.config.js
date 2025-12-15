@@ -27,36 +27,40 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
-  
+
   build: {
     // Target modern browsers for better optimization
     target: 'es2015',
-    
+
     // Optimize chunk size
     chunkSizeWarningLimit: 1000,
-    
+
     rollupOptions: {
       output: {
         // Manual chunk splitting for better caching
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React ecosystem - MUST be separate and load first
+            if (id.includes('react/') || id.includes('react-dom/')) {
               return 'vendor-react'
+            }
+            // React Router
+            if (id.includes('react-router')) {
+              return 'vendor-react-router'
             }
             // Firebase
             if (id.includes('firebase')) {
               return 'vendor-firebase'
             }
-            // UI libraries
-            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('recharts')) {
+            // UI libraries - load AFTER React
+            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('recharts') || id.includes('@tremor') || id.includes('@headlessui')) {
               return 'vendor-ui'
             }
             // Other vendors
             return 'vendor-other'
           }
-          
+
           // Large pages get their own chunks
           if (id.includes('src/pages/BinAnalytics')) {
             return 'page-bin-analytics'
@@ -74,12 +78,12 @@ export default defineConfig({
             return 'page-overview'
           }
         },
-        
+
         // Optimize asset file names for better caching
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')
           const ext = info[info.length - 1]
-          
+
           if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico)$/i.test(assetInfo.name)) {
             return `assets/images/[name]-[hash][extname]`
           }
@@ -88,22 +92,22 @@ export default defineConfig({
           }
           return `assets/[name]-[hash][extname]`
         },
-        
+
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
       },
     },
-    
+
     // Minification options - using esbuild (faster and more reliable)
     minify: 'esbuild',
-    
+
     // Source maps for production debugging (optional, can disable for smaller builds)
     sourcemap: false,
-    
+
     // CSS code splitting
     cssCodeSplit: true,
   },
-  
+
   // Optimize dependencies
   optimizeDeps: {
     include: [
