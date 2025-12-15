@@ -20,11 +20,8 @@ const InsertTestLives = () => {
         }
 
         // console.log('🚀 Iniciando inserción de lives de prueba...');
-        // console.log('📋 Datos del usuario:', {
-            id: user.id,
-            name: user.name,
-            email: user.email
-        });
+        // console.log('📋 Datos del usuario:', user.id, user.name, user.email);
+
 
         try {
             await insertTestLives(user.id, user.name || user.email, user.email);

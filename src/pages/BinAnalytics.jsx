@@ -228,10 +228,7 @@ const BinAnalytics = () => {
 
                 // Mostrar los primeros 3 como ejemplo
                 if (sampleCount < 3) {
-                    // console.log(`📝 Ejemplo ${sampleCount + 1}:`, {
-                        card: data.card,
-                        gateName: data.gateName
-                    });
+                    // console.log(`📝 Ejemplo ${sampleCount + 1}:`, data.card, data.gateName);
                     sampleCount++;
                 }
 
@@ -578,9 +575,9 @@ const BinAnalytics = () => {
                 {activeTab === 'charts' && (
                     <div style={{ marginBottom: '2rem' }}>
                         {/* Header con Filtro de Período */}
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
                             marginBottom: '1.5rem',
                             flexWrap: 'wrap',
@@ -590,9 +587,9 @@ const BinAnalytics = () => {
                                 <TrendingUp size={28} />
                                 📊 Estadísticas Visuales
                             </h2>
-                            
+
                             {/* Filtro de Período */}
-                            <DateRangePicker 
+                            <DateRangePicker
                                 value={chartPeriod}
                                 onChange={(period, customRange) => {
                                     setChartPeriod(period);
@@ -660,9 +657,9 @@ const BinAnalytics = () => {
                                         <Title>📊 Top Bancos</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={chartsData.topBanks.map(item => ({ 
-                                                banco: item.bank.length > 20 ? item.bank.substring(0, 20) + '...' : item.bank, 
-                                                Lives: item.count 
+                                            data={chartsData.topBanks.map(item => ({
+                                                banco: item.bank.length > 20 ? item.bank.substring(0, 20) + '...' : item.bank,
+                                                Lives: item.count
                                             }))}
                                             index="banco"
                                             categories={["Lives"]}
@@ -680,9 +677,9 @@ const BinAnalytics = () => {
                                         <Title>🌍 Top Países</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={chartsData.topCountries.map(item => ({ 
-                                                país: item.country, 
-                                                Lives: item.count 
+                                            data={chartsData.topCountries.map(item => ({
+                                                país: item.country,
+                                                Lives: item.count
                                             }))}
                                             index="país"
                                             categories={["Lives"]}
@@ -700,9 +697,9 @@ const BinAnalytics = () => {
                                         <Title>🏦 Top Marcas</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={chartsData.topBrands.map(item => ({ 
-                                                marca: item.brand, 
-                                                Lives: item.count 
+                                            data={chartsData.topBrands.map(item => ({
+                                                marca: item.brand,
+                                                Lives: item.count
                                             }))}
                                             index="marca"
                                             categories={["Lives"]}
@@ -721,9 +718,9 @@ const BinAnalytics = () => {
                                         <Title>💳 Tipos de Tarjeta</Title>
                                         <DonutChart
                                             className="mt-6"
-                                            data={chartsData.cardTypes.map(item => ({ 
-                                                tipo: item.type, 
-                                                Cantidad: item.count 
+                                            data={chartsData.cardTypes.map(item => ({
+                                                tipo: item.type,
+                                                Cantidad: item.count
                                             }))}
                                             category="Cantidad"
                                             index="tipo"
@@ -740,9 +737,9 @@ const BinAnalytics = () => {
                                         <Title>📈 Niveles de Tarjeta</Title>
                                         <DonutChart
                                             className="mt-6"
-                                            data={chartsData.cardLevels.map(item => ({ 
-                                                nivel: item.level, 
-                                                Cantidad: item.count 
+                                            data={chartsData.cardLevels.map(item => ({
+                                                nivel: item.level,
+                                                Cantidad: item.count
                                             }))}
                                             category="Cantidad"
                                             index="nivel"
@@ -761,9 +758,9 @@ const BinAnalytics = () => {
                 {activeTab === 'stats' && (
                     <div style={{ marginBottom: '2rem' }}>
                         {/* Header con Filtro de Período */}
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
                             marginBottom: '1.5rem',
                             flexWrap: 'wrap',
@@ -773,9 +770,9 @@ const BinAnalytics = () => {
                                 <TrendingUp size={28} />
                                 📈 Estadísticas Detalladas
                             </h2>
-                            
+
                             {/* Filtro de Período para Estadísticas */}
-                            <DateRangePicker 
+                            <DateRangePicker
                                 value={statsPeriod}
                                 onChange={(period, customRange) => {
                                     setStatsPeriod(period);
@@ -802,9 +799,9 @@ const BinAnalytics = () => {
                                         <Title>🔢 BINs con más Lives</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={stats.topBinsWithLives.slice(0, 10).map(item => ({ 
-                                                BIN: item.bin, 
-                                                Lives: item.lives 
+                                            data={stats.topBinsWithLives.slice(0, 10).map(item => ({
+                                                BIN: item.bin,
+                                                Lives: item.lives
                                             }))}
                                             index="BIN"
                                             categories={["Lives"]}
@@ -822,9 +819,9 @@ const BinAnalytics = () => {
                                         <Title>🔍 BINs más Consultados</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={stats.mostCheckedBins.slice(0, 10).map(item => ({ 
-                                                BIN: item.bin, 
-                                                Consultas: item.count 
+                                            data={stats.mostCheckedBins.slice(0, 10).map(item => ({
+                                                BIN: item.bin,
+                                                Consultas: item.count
                                             }))}
                                             index="BIN"
                                             categories={["Consultas"]}
@@ -842,9 +839,9 @@ const BinAnalytics = () => {
                                         <Title>🏦 Top Bancos</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={stats.topBanks.slice(0, 8).map(item => ({ 
-                                                banco: item.bank.length > 25 ? item.bank.substring(0, 25) + '...' : item.bank, 
-                                                Lives: item.count 
+                                            data={stats.topBanks.slice(0, 8).map(item => ({
+                                                banco: item.bank.length > 25 ? item.bank.substring(0, 25) + '...' : item.bank,
+                                                Lives: item.count
                                             }))}
                                             index="banco"
                                             categories={["Lives"]}
@@ -863,9 +860,9 @@ const BinAnalytics = () => {
                                         <Title>🌍 Top Países</Title>
                                         <BarChart
                                             className="mt-6"
-                                            data={stats.topCountries.slice(0, 10).map(item => ({ 
-                                                país: item.country, 
-                                                Lives: item.count 
+                                            data={stats.topCountries.slice(0, 10).map(item => ({
+                                                país: item.country,
+                                                Lives: item.count
                                             }))}
                                             index="país"
                                             categories={["Lives"]}
@@ -885,9 +882,9 @@ const BinAnalytics = () => {
                 {activeTab === 'gates' && (
                     <div style={{ marginBottom: '2rem' }}>
                         {/* Header con Filtro de Período */}
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
                             marginBottom: '1.5rem',
                             flexWrap: 'wrap',
@@ -897,9 +894,9 @@ const BinAnalytics = () => {
                                 <Search size={28} />
                                 🔍 Buscar Gate por BIN
                             </h2>
-                            
+
                             {/* Filtro de Período para Gates */}
-                            <DateRangePicker 
+                            <DateRangePicker
                                 value={chartPeriod}
                                 onChange={(period, customRange) => {
                                     setChartPeriod(period);
