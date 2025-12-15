@@ -37,48 +37,7 @@ export default defineConfig({
 
     rollupOptions: {
       output: {
-        // Manual chunk splitting for better caching
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes('node_modules')) {
-            // React ecosystem - MUST be separate and load first
-            if (id.includes('react/') || id.includes('react-dom/')) {
-              return 'vendor-react'
-            }
-            // React Router
-            if (id.includes('react-router')) {
-              return 'vendor-react-router'
-            }
-            // Firebase
-            if (id.includes('firebase')) {
-              return 'vendor-firebase'
-            }
-            // UI libraries - load AFTER React
-            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('recharts') || id.includes('@tremor') || id.includes('@headlessui')) {
-              return 'vendor-ui'
-            }
-            // Other vendors
-            return 'vendor-other'
-          }
-
-          // Large pages get their own chunks
-          if (id.includes('src/pages/BinAnalytics')) {
-            return 'page-bin-analytics'
-          }
-          if (id.includes('src/pages/GateStatusManager')) {
-            return 'page-gate-status'
-          }
-          if (id.includes('src/pages/Gates')) {
-            return 'page-gates'
-          }
-          if (id.includes('src/pages/Orders')) {
-            return 'page-orders'
-          }
-          if (id.includes('src/pages/Overview')) {
-            return 'page-overview'
-          }
-        },
-
+        // Let Vite handle chunking automatically for better compatibility
         // Optimize asset file names for better caching
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')
