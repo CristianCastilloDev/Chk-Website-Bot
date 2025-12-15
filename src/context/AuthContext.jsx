@@ -27,18 +27,18 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            console.log('🔐 Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
+            // console.log('🔐 Auth state changed:', firebaseUser ? 'User logged in' : 'No user');
             if (firebaseUser) {
                 try {
-                    console.log('📄 Fetching user document for:', firebaseUser.uid);
+                    // console.log('📄 Fetching user document for:', firebaseUser.uid);
                     const userDoc = await getUserDocument(firebaseUser.uid);
-                    console.log('✅ User document loaded:', userDoc);
+                    // console.log('✅ User document loaded:', userDoc);
 
                     // Update lastLogin timestamp
                     await updateUserDocument(firebaseUser.uid, {
                         lastLogin: new Date()
                     });
-                    console.log('⏰ Updated lastLogin timestamp');
+                    // console.log('⏰ Updated lastLogin timestamp');
 
                     setUser(userDoc);
 

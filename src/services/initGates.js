@@ -121,7 +121,7 @@ export const initializeGates = async () => {
         }
     ];
 
-    console.log('🚀 Iniciando creación de gates...');
+    // console.log('🚀 Iniciando creación de gates...');
 
     for (const gate of gates) {
         try {
@@ -132,13 +132,13 @@ export const initializeGates = async () => {
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
-            console.log(`✅ Gate creado: ${gate.name}`);
+            // console.log(`✅ Gate creado: ${gate.name}`);
         } catch (error) {
             console.error(`❌ Error creando ${gate.name}:`, error);
         }
     }
 
-    console.log('🎉 ¡Todos los gates han sido creados!');
+    // console.log('🎉 ¡Todos los gates han sido creados!');
 
     // Crear stats iniciales
     try {
@@ -153,7 +153,7 @@ export const initializeGates = async () => {
             },
             lastUpdated: serverTimestamp()
         });
-        console.log('✅ Stats globales inicializadas');
+        // console.log('✅ Stats globales inicializadas');
     } catch (error) {
         console.error('❌ Error creando stats:', error);
     }

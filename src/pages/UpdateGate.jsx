@@ -2,7 +2,7 @@ import { updateStripeGate1 } from '../services/updateGate';
 
 const UpdateGate = () => {
     const handleUpdate = async () => {
-        console.log('Actualizando Stripe Gate 1...');
+        // console.log('Actualizando Stripe Gate 1...');
         const success = await updateStripeGate1();
         if (success) {
             alert('✅ Gate actualizado exitosamente!');

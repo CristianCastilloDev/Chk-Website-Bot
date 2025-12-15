@@ -95,24 +95,24 @@ const seedInitialPlans = async () => {
             createdAt: serverTimestamp()
         };
         await setDoc(planRef, newPlan);
-        console.log(`✅ Created plan: ${plan.name}`);
+        // console.log(`✅ Created plan: ${plan.name}`);
     }
 };
 
 // Main initialization function
 const initializeFirebase = async () => {
     try {
-        console.log('🔥 Initializing Firebase...');
-        console.log('📦 Seeding initial plans...');
+        // console.log('🔥 Initializing Firebase...');
+        // console.log('📦 Seeding initial plans...');
 
         await seedInitialPlans();
 
-        console.log('\n✅ Firebase initialized successfully!');
-        console.log('📋 Plans created:');
-        console.log('  - Free (10 credits)');
-        console.log('  - Monthly Pro (100 credits - $29)');
-        console.log('  - Annual Pro (1200 credits - $290)');
-        console.log('  - Lifetime (10,000 credits - $999)');
+        // console.log('\n✅ Firebase initialized successfully!');
+        // console.log('📋 Plans created:');
+        // console.log('  - Free (10 credits)');
+        // console.log('  - Monthly Pro (100 credits - $29)');
+        // console.log('  - Annual Pro (1200 credits - $290)');
+        // console.log('  - Lifetime (10,000 credits - $999)');
 
         process.exit(0);
     } catch (error) {

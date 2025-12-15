@@ -7,6 +7,6 @@ import { generateTestLives, deleteAllTestLives } from '../services/db';
 window.generateTestLives = generateTestLives;
 window.deleteAllTestLives = deleteAllTestLives;
 
-console.log('✅ Funciones de prueba cargadas:');
-console.log('   📝 await generateTestLives(100) - Genera 100 lives de prueba');
-console.log('   🗑️ await deleteAllTestLives() - Elimina todas las lives');
+// console.log('✅ Funciones de prueba cargadas:');
+// console.log('   📝 await generateTestLives(100) - Genera 100 lives de prueba');
+// console.log('   🗑️ await deleteAllTestLives() - Elimina todas las lives');

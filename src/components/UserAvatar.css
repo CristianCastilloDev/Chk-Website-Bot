@@ -1,0 +1,77 @@
+/* UserAvatar Component Styles */
+
+.user-avatar {
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--glass-border);
+    background: var(--bg-secondary);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+/* Size variants */
+.user-avatar-xs {
+    width: 24px;
+    height: 24px;
+    border-width: 1px;
+}
+
+.user-avatar-xs .user-avatar-initials {
+    font-size: 0.625rem;
+}
+
+.user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-width: 2px;
+}
+
+.user-avatar-sm .user-avatar-initials {
+    font-size: 0.75rem;
+}
+
+.user-avatar-md {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+}
+
+.user-avatar-md .user-avatar-initials {
+    font-size: 0.875rem;
+}
+
+.user-avatar-lg {
+    width: 56px;
+    height: 56px;
+    border-width: 2px;
+}
+
+.user-avatar-lg .user-avatar-initials {
+    font-size: 1.125rem;
+}
+
+.user-avatar-xl {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+}
+
+.user-avatar-xl .user-avatar-initials {
+    font-size: 1.5rem;
+}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    ShoppingCart, 
-    CheckCircle, 
-    XCircle, 
+import {
+    ShoppingCart,
+    CheckCircle,
+    XCircle,
     Clock,
     Plus,
     Filter,
@@ -19,6 +19,7 @@ import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import { collection, getDocs, updateDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import UserAvatar from '../components/UserAvatar';
 import './Pages.css';
 
 const Orders = () => {
@@ -32,7 +33,7 @@ const Orders = () => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-    
+
     // Form states
     const [formData, setFormData] = useState({
         targetUser: '',
@@ -53,18 +54,18 @@ const Orders = () => {
     const loadOrders = async () => {
         try {
             setLoading(true);
-            
+
             // Delay de 2 segundos para mostrar la animación del skeleton
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             const ordersRef = collection(db, 'analytics_orders');
             const snapshot = await getDocs(ordersRef);
-            
+
             const ordersData = await Promise.all(snapshot.docs.map(async (orderDoc) => {
                 const orderData = orderDoc.data();
                 let adminPhoto = null;
                 let userPhoto = null;
-                
+
                 // Fetch admin photo
                 if (orderData.createdBy) {
                     try {
@@ -78,7 +79,7 @@ const Orders = () => {
                         console.error('Error fetching admin photo:', error);
                     }
                 }
-                
+
                 // Fetch target user photo
                 if (orderData.targetUser) {
                     try {
@@ -92,7 +93,7 @@ const Orders = () => {
                         console.error('Error fetching user photo:', error);
                     }
                 }
-                
+
                 return {
                     id: orderDoc.id,
                     ...orderData,
@@ -106,7 +107,7 @@ const Orders = () => {
 
             // Ordenar por fecha (más recientes primero)
             ordersData.sort((a, b) => b.createdAt - a.createdAt);
-            
+
             setOrders(ordersData);
         } catch (error) {
             console.error('Error loading orders:', error);
@@ -125,7 +126,7 @@ const Orders = () => {
 
         // Filtrar por búsqueda
         if (searchTerm) {
-            filtered = filtered.filter(order => 
+            filtered = filtered.filter(order =>
                 order.targetUser?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 order.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 order.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -163,12 +164,12 @@ const Orders = () => {
                 // Agregar créditos
                 const currentCredits = userData.credits || 0;
                 const newCredits = currentCredits + order.amount;
-                
+
                 await updateDoc(doc(db, 'users', userId), {
                     credits: newCredits
                 });
 
-                console.log(`✅ ${order.amount} créditos agregados a ${order.targetUser}`);
+                // console.log(`✅ ${order.amount} créditos agregados a ${order.targetUser}`);
             } else if (order.type === 'plan') {
                 // Agregar días al plan
                 const now = new Date();
@@ -188,7 +189,7 @@ const Orders = () => {
                     planExpiresAt: newExpirationDate
                 });
 
-                console.log(`✅ ${order.amount} días de plan agregados a ${order.targetUser}`);
+                // console.log(`✅ ${order.amount} días de plan agregados a ${order.targetUser}`);
             }
 
             // Actualizar el estado de la orden
@@ -210,7 +211,7 @@ const Orders = () => {
 
     const handleReject = async (orderId) => {
         const reason = prompt('Razón del rechazo (opcional):');
-        
+
         try {
             const orderRef = doc(db, 'analytics_orders', orderId);
             await updateDoc(orderRef, {
@@ -231,7 +232,7 @@ const Orders = () => {
 
     const handleCreateOrder = async (e) => {
         e.preventDefault();
-        
+
         try {
             const ordersRef = collection(db, 'analytics_orders');
             await addDoc(ordersRef, {
@@ -330,9 +331,9 @@ const Orders = () => {
                 transition={{ duration: 0.5 }}
             >
                 {/* Header */}
-                <div className="page-header" style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                <div className="page-header" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     marginBottom: '2rem',
                     flexWrap: 'wrap',
@@ -366,8 +367,8 @@ const Orders = () => {
                 </div>
 
                 {/* Stats Cards */}
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '1rem',
                     marginBottom: '2rem'
@@ -555,9 +556,9 @@ const Orders = () => {
                 )}
 
                 {/* Filters */}
-                <div style={{ 
-                    display: 'flex', 
-                    gap: '1rem', 
+                <div style={{
+                    display: 'flex',
+                    gap: '1rem',
                     marginBottom: '1.5rem',
                     flexWrap: 'wrap',
                     alignItems: 'center'
@@ -690,9 +691,9 @@ const Orders = () => {
                                 </thead>
                                 <tbody>
                                     {[...Array(10)].map((_, index) => (
-                                        <tr 
+                                        <tr
                                             key={index}
-                                            style={{ 
+                                            style={{
                                                 background: 'rgba(128, 128, 128, 0.1)',
                                                 borderRadius: '12px'
                                             }}
@@ -756,12 +757,12 @@ const Orders = () => {
                                 </thead>
                                 <tbody>
                                     {paginatedOrders.map((order) => (
-                                        <tr 
+                                        <tr
                                             key={order.id}
-                                            style={{ 
+                                            style={{
                                                 background: order.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
-                                                           order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
-                                                           'rgba(239, 68, 68, 0.1)',
+                                                    order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
+                                                        'rgba(239, 68, 68, 0.1)',
                                                 borderRadius: '12px',
                                                 transition: 'all 0.2s'
                                             }}
@@ -775,46 +776,22 @@ const Orders = () => {
                                             }}
                                         >
                                             <td style={{ padding: '0.75rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <div style={{
-                                                        width: '32px',
-                                                        height: '32px',
-                                                        borderRadius: '50%',
-                                                        background: order.adminPhoto ? `url(${order.adminPhoto})` : '#6366f1',
-                                                        backgroundSize: 'cover',
-                                                        backgroundPosition: 'center',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        color: 'white',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 600,
-                                                        flexShrink: 0
-                                                    }}>
-                                                        {!order.adminPhoto && (order.createdBy?.charAt(0) || 'A')}
-                                                    </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <UserAvatar
+                                                        photoURL={order.adminPhoto}
+                                                        name={order.createdBy}
+                                                        size="sm"
+                                                    />
                                                     <span>{order.createdBy}</span>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '0.75rem', fontWeight: 600 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <div style={{
-                                                        width: '32px',
-                                                        height: '32px',
-                                                        borderRadius: '50%',
-                                                        background: order.userPhoto ? `url(${order.userPhoto})` : '#10b981',
-                                                        backgroundSize: 'cover',
-                                                        backgroundPosition: 'center',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        color: 'white',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 600,
-                                                        flexShrink: 0
-                                                    }}>
-                                                        {!order.userPhoto && (order.targetUser?.charAt(0) || 'U')}
-                                                    </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <UserAvatar
+                                                        photoURL={order.userPhoto}
+                                                        name={order.targetUser}
+                                                        size="sm"
+                                                    />
                                                     <span>{order.targetUser}</span>
                                                 </div>
                                             </td>

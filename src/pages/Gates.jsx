@@ -89,9 +89,9 @@ const Gates = () => {
 
         for (const card of cardList) {
             try {
-                console.log('🔗 API URL:', API_URL);
-                console.log('📤 Enviando tarjeta:', card);
-                console.log('🎯 Gate:', selectedGate.name);
+                // console.log('🔗 API URL:', API_URL);
+                // console.log('📤 Enviando tarjeta:', card);
+                // console.log('🎯 Gate:', selectedGate.name);
 
                 const startTime = Date.now();
                 const response = await fetch(`${API_URL}/check`, {
@@ -103,7 +103,7 @@ const Gates = () => {
                     body: JSON.stringify({ card: card.trim() })
                 });
 
-                console.log('📥 Respuesta:', response.status);
+                // console.log('📥 Respuesta:', response.status);
 
                 let data;
                 const contentType = response.headers.get('content-type');
@@ -114,7 +114,7 @@ const Gates = () => {
                     data = await response.text();
                 }
 
-                console.log('📦 Data recibida:', data);
+                // console.log('📦 Data recibida:', data);
 
                 const endTime = Date.now();
                 const time = ((endTime - startTime) / 1000).toFixed(2);
@@ -150,7 +150,7 @@ const Gates = () => {
                                 };
                             }
                         } catch (binError) {
-                            console.log('No se pudo obtener info del BIN:', binError);
+                            // console.log('No se pudo obtener info del BIN:', binError);
                         }
 
                         await saveLive({
@@ -174,7 +174,7 @@ const Gates = () => {
                             cardBrand: bankInfo.brand
                         });
 
-                        console.log('✅ Live Guardada en Firebase con info de BIN');
+                        // console.log('✅ Live Guardada en Firebase con info de BIN');
                     } catch (error) {
                         console.error('Error guardando live:', error);
                     }
@@ -329,7 +329,7 @@ const Gates = () => {
                 name.includes('stripe') ||  // Stripe típicamente es CHARGE
                 type === 'stripe';
 
-            console.log(`Gate: ${g.name} - CHARGE: ${isCharge}`);
+            // console.log(`Gate: ${g.name} - CHARGE: ${isCharge}`);
             return isCharge;
         }),
         auth: gates.filter(g => {
@@ -348,13 +348,13 @@ const Gates = () => {
                 type === 'braintree' ||
                 type === 'paypal';
 
-            console.log(`Gate: ${g.name} - AUTH: ${isAuth}`);
+            // console.log(`Gate: ${g.name} - AUTH: ${isAuth}`);
             return isAuth;
         })
     };
 
-    console.log('CHARGE Gates:', gatesByCategory.charge.length);
-    console.log('AUTH Gates:', gatesByCategory.auth.length);
+    // console.log('CHARGE Gates:', gatesByCategory.charge.length);
+    // console.log('AUTH Gates:', gatesByCategory.auth.length);
 
     return (
         <DashboardLayout currentPage="gates">

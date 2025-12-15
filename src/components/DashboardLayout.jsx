@@ -11,6 +11,8 @@ import {
     Sun,
     Moon,
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
     DollarSign,
     Shield,
     UserCircle,
@@ -33,6 +35,7 @@ import './Dashboard.css';
 
 const DashboardLayout = ({ children, currentPage }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [expandedMenus, setExpandedMenus] = useState({});
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
@@ -41,117 +44,96 @@ const DashboardLayout = ({ children, currentPage }) => {
     const location = useLocation();
 
     const menuItems = [
-        // 1. Overview (Solo admin y dev)
+        // 1. Dashboard (renamed from Overview - Admin/Dev only)
         {
-            id: 'overview',
-            label: 'Overview',
+            id: 'dashboard',
+            label: 'Dashboard',
             icon: LayoutDashboard,
             path: '/dashboard',
             adminOnly: true
         },
-        // 2. Analytics con BIN Analytics (con badge NEW)
+        // 2. BIN Analytics (no submenu, top-level with badge)
         {
-            id: 'analytics',
-            label: 'Analytics',
-            icon: BarChart3,
-            submenu: [
-                {
-                    id: 'bin-analytics',
-                    label: 'BIN Analytics',
-                    icon: Search,
-                    path: '/bin-analytics',
-                    requiresPlan: true,
-                    badge: 'NEW'
-                }
-            ]
+            id: 'bin-analytics',
+            label: 'BIN Analytics',
+            icon: Search,
+            path: '/bin-analytics',
+            requiresPlan: true,
+            badge: 'NEW'
         },
-        // 3. Panel Admin
-        {
-            id: 'admin-panel',
-            label: 'Panel Admin',
-            icon: Settings,
-            adminOnly: true,
-            submenu: [
-                {
-                    id: 'users',
-                    label: 'Users',
-                    icon: Users,
-                    path: '/dashboard/users',
-                    adminOnly: true
-                },
-                {
-                    id: 'sales',
-                    label: 'Sales',
-                    icon: ShoppingCart,
-                    path: '/dashboard/sales',
-                    adminOnly: true
-                },
-                {
-                    id: 'orders',
-                    label: 'Órdenes',
-                    icon: ShoppingCart,
-                    path: '/dashboard/orders',
-                    devOnly: true,
-                    badge: 'DEV'
-                },
-                {
-                    id: 'gate-status',
-                    label: 'Status Gates',
-                    icon: Shield,
-                    path: '/admin/gate-status',
-                    devOnly: true
-                },
-                {
-                    id: 'lives-admin',
-                    label: 'Lives Global',
-                    icon: Database,
-                    path: '/admin/lives',
-                    devOnly: true
-                }
-            ]
-        },
-        // 4. Gates
+        // 3. Gates
         {
             id: 'gates',
             label: 'Gates',
             icon: Shield,
             path: '/dashboard/gates'
         },
-        // 5. Mis Lives
+        // 4. Mis Lives
         {
             id: 'my-lives',
             label: 'Mis Lives',
             icon: Heart,
             path: '/gates/my-lives'
         },
-        // 6. Herramientas
+        // 5. Email Temporal
         {
-            id: 'herramientas',
-            label: 'Herramientas',
-            icon: Wrench,
-            submenu: [
-                { id: 'email-temp', label: 'Email Temporal', icon: Mail, path: '/dashboard/herramientas/email' },
-                { id: 'sms-temp', label: 'SMS Temporal', icon: MessageSquare, path: '/dashboard/herramientas/sms' },
-                { id: 'fake-address', label: 'Fake Address', icon: MapPin, path: '/dashboard/herramientas/address' }
-            ]
+            id: 'email-temp',
+            label: 'Email Temporal',
+            icon: Mail,
+            path: '/dashboard/herramientas/email'
         },
-        // 7. Precios
+        // 6. SMS
+        {
+            id: 'sms-temp',
+            label: 'SMS',
+            icon: MessageSquare,
+            path: '/dashboard/herramientas/sms'
+        },
+        // 7. Fake Address
+        {
+            id: 'fake-address',
+            label: 'Fake Address',
+            icon: MapPin,
+            path: '/dashboard/herramientas/address'
+        },
+        // 8. Admin Section - Users
+        {
+            id: 'users',
+            label: 'Usuarios',
+            icon: Users,
+            path: '/dashboard/users',
+            adminOnly: true
+        },
+        // 7. Admin Section - Orders
+        {
+            id: 'orders',
+            label: 'Órdenes',
+            icon: ShoppingCart,
+            path: '/dashboard/orders',
+            adminOnly: true
+        },
+        // 8. Admin Section - Gate Status
+        {
+            id: 'gate-status',
+            label: 'Status Gates',
+            icon: Shield,
+            path: '/admin/gate-status',
+            adminOnly: true
+        },
+        // 9. Dev Only - Lives Global
+        {
+            id: 'lives-admin',
+            label: 'Lives Global',
+            icon: Database,
+            path: '/admin/lives',
+            devOnly: true
+        },
+        // 10. Pricing (for all users)
         {
             id: 'pricing',
             label: 'Precios',
             icon: DollarSign,
             path: '/pricing'
-        },
-        // 8. Configuraciones
-        {
-            id: 'settings',
-            label: 'Configuraciones',
-            icon: Settings,
-            submenu: [
-                { id: 'settings-profile', label: 'Profile', icon: UserCircle, path: '/dashboard/settings' },
-                { id: 'settings-billing', label: 'Billing', icon: CreditCard, path: '/dashboard/settings/billing' },
-                { id: 'settings-security', label: 'Security', icon: Lock, path: '/dashboard/settings/security' }
-            ]
         }
     ];
 
@@ -168,7 +150,10 @@ const DashboardLayout = ({ children, currentPage }) => {
 
     const handleNavigation = (path) => {
         navigate(path);
-        setSidebarOpen(false);
+        // Only close sidebar on mobile
+        if (window.innerWidth <= 768) {
+            setSidebarOpen(false);
+        }
     };
 
     const shouldShowMenuItem = (item) => {
@@ -220,13 +205,24 @@ const DashboardLayout = ({ children, currentPage }) => {
 
     return (
         <div className="dashboard-layout">
+            {/* Sidebar Toggle Button - Floating on edge */}
+            {window.innerWidth > 768 && (
+                <button
+                    className="sidebar-toggle-floating"
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    title={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+                >
+                    {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                </button>
+            )}
+
             {/* Sidebar */}
             {(sidebarOpen || window.innerWidth > 768) && (
-                <aside className="sidebar glass">
+                <aside className={`sidebar glass ${sidebarCollapsed ? 'collapsed' : ''}`}>
                     <div className="sidebar-header">
-                        <div className="logo gradient-text">
+                        <div className="logo">
                             <LayoutDashboard size={28} />
-                            <span>Dashboard</span>
+                            {!sidebarCollapsed && <span>Dashboard</span>}
                         </div>
                         <button
                             className="sidebar-close"
@@ -237,98 +233,119 @@ const DashboardLayout = ({ children, currentPage }) => {
                     </div>
 
                     <nav className="sidebar-nav">
-                        {menuItems.filter(shouldShowMenuItem).map((item) => (
-                            <div key={item.id}>
-                                {item.submenu ? (
-                                    // Parent menu with submenu
-                                    <div className="nav-item-group">
+                        {menuItems.filter(shouldShowMenuItem).map((item, index) => {
+                            // Add divider before Email Temporal and Users
+                            const showDividerBefore = item.id === 'email-temp' || item.id === 'users';
+
+                            return (
+                                <div key={item.id}>
+                                    {showDividerBefore && (
+                                        <div className="menu-divider"></div>
+                                    )}
+
+                                    {item.submenu ? (
+                                        // Parent menu with submenu
+                                        <div className="nav-item-group">
+                                            <button
+                                                className={`nav-item ${expandedMenus[item.id] ? 'expanded' : ''}`}
+                                                onClick={() => toggleSubmenu(item.id)}
+                                            >
+                                                <div className="nav-item-content">
+                                                    <item.icon size={20} />
+                                                    {!sidebarCollapsed && <span>{item.label}</span>}
+                                                </div>
+                                                {!sidebarCollapsed && (
+                                                    <div style={{
+                                                        transform: expandedMenus[item.id] ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                        transition: 'transform 0.2s'
+                                                    }}>
+                                                        <ChevronDown size={18} />
+                                                    </div>
+                                                )}
+                                            </button>
+
+                                            {expandedMenus[item.id] && (
+                                                <div className="submenu">
+                                                    {item.submenu.filter(shouldShowMenuItem).map((subItem) => (
+                                                        <button
+                                                            key={subItem.id}
+                                                            className={`submenu-item ${isPathActive(subItem.path) ? 'active' : ''}`}
+                                                            onClick={() => handleNavigation(subItem.path)}
+                                                        >
+                                                            <subItem.icon size={16} />
+                                                            <span>{subItem.label}</span>
+                                                            {subItem.badge && (
+                                                                <span style={{
+                                                                    marginLeft: 'auto',
+                                                                    padding: '0.15rem 0.5rem',
+                                                                    borderRadius: '12px',
+                                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                                    color: 'white',
+                                                                    fontSize: '0.65rem',
+                                                                    fontWeight: 700,
+                                                                    letterSpacing: '0.5px'
+                                                                }}>
+                                                                    {subItem.badge}
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        // Regular menu item
                                         <button
-                                            className={`nav-item ${expandedMenus[item.id] ? 'expanded' : ''}`}
-                                            onClick={() => toggleSubmenu(item.id)}
+                                            className={`nav-item ${isPathActive(item.path) ? 'active' : ''}`}
+                                            onClick={() => handleNavigation(item.path)}
                                         >
                                             <div className="nav-item-content">
                                                 <item.icon size={20} />
-                                                <span>{item.label}</span>
+                                                {!sidebarCollapsed && <span>{item.label}</span>}
                                             </div>
-                                            <div style={{
-                                                transform: expandedMenus[item.id] ? 'rotate(180deg)' : 'rotate(0deg)',
-                                                transition: 'transform 0.2s'
-                                            }}>
-                                                <ChevronDown size={18} />
-                                            </div>
+                                            {!sidebarCollapsed && item.badge && (
+                                                <span style={{
+                                                    padding: '0.15rem 0.5rem',
+                                                    borderRadius: '12px',
+                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                    color: 'white',
+                                                    fontSize: '0.65rem',
+                                                    fontWeight: 700,
+                                                    letterSpacing: '0.5px'
+                                                }}>
+                                                    {item.badge}
+                                                </span>
+                                            )}
                                         </button>
-
-                                        {expandedMenus[item.id] && (
-                                            <div className="submenu">
-                                                {item.submenu.filter(shouldShowMenuItem).map((subItem) => (
-                                                    <button
-                                                        key={subItem.id}
-                                                        className={`submenu-item ${isPathActive(subItem.path) ? 'active' : ''}`}
-                                                        onClick={() => handleNavigation(subItem.path)}
-                                                    >
-                                                        <subItem.icon size={16} />
-                                                        <span>{subItem.label}</span>
-                                                        {subItem.badge && (
-                                                            <span style={{
-                                                                marginLeft: 'auto',
-                                                                padding: '0.15rem 0.5rem',
-                                                                borderRadius: '12px',
-                                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                                color: 'white',
-                                                                fontSize: '0.65rem',
-                                                                fontWeight: 700,
-                                                                letterSpacing: '0.5px'
-                                                            }}>
-                                                                {subItem.badge}
-                                                            </span>
-                                                        )}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    // Regular menu item
-                                    <button
-                                        className={`nav-item ${isPathActive(item.path) ? 'active' : ''}`}
-                                        onClick={() => handleNavigation(item.path)}
-                                    >
-                                        <div className="nav-item-content">
-                                            <item.icon size={20} />
-                                            <span>{item.label}</span>
-                                        </div>
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                                    )}
+                                </div>
+                            );
+                        })}
                     </nav>
 
                     <div className="sidebar-footer">
-                        {/* Theme Toggle */}
-                        <button
-                            className="theme-toggle-sidebar"
-                            onClick={toggleTheme}
-                            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                        >
-                            {theme === 'dark' ? (
-                                <>
-                                    <Sun size={18} />
-                                    <span>Light Mode</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Moon size={18} />
-                                    <span>Dark Mode</span>
-                                </>
-                            )}
-                        </button>
+                        {/* Upgrade Card */}
+                        <div className="upgrade-card">
+                            <div className="upgrade-illustration">
+                                📊
+                            </div>
+                            <div className="upgrade-title">
+                                Upgrade for free
+                            </div>
+                            <button
+                                className="upgrade-button"
+                                onClick={() => handleNavigation('/pricing')}
+                            >
+                                Upgrade for free
+                            </button>
+                        </div>
 
                         {/* User Profile */}
                         <div className="user-profile-container">
                             <div className="user-profile">
                                 <div
                                     className="user-avatar"
-                                    style={{ 
+                                    style={{
                                         background: user?.photoURL ? 'transparent' : (user?.avatar?.color || '#6366f1'),
                                         backgroundImage: user?.photoURL ? `url(${user.photoURL})` : 'none',
                                         backgroundSize: 'cover',
@@ -372,9 +389,53 @@ const DashboardLayout = ({ children, currentPage }) => {
                     </button>
 
                     <div className="header-actions">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                        >
+                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+
+                        {/* Settings Icon */}
+                        <button
+                            onClick={() => navigate('/dashboard/settings')}
+                            title="Settings"
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-primary)',
+                                cursor: 'pointer',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                        >
+                            <Settings size={20} />
+                        </button>
+
                         {/* Notification Center - Only for admins and devs */}
                         {(isAdmin() || isDev()) && <NotificationCenter />}
-                        
+
                         {/* User Status Badges */}
                         {user && (
                             <div className="header-badges">

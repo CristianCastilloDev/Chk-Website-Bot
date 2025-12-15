@@ -44,16 +44,16 @@ export const createUserDocument = async (uid, userData) => {
 
 export const getUserDocument = async (uid) => {
   try {
-    console.log('🔍 Getting user document for UID:', uid);
+    // console.log('🔍 Getting user document for UID:', uid);
     const userRef = doc(db, 'users', uid);
-    console.log('📍 User ref path:', userRef.path);
+    // console.log('📍 User ref path:', userRef.path);
     const userSnap = await getDoc(userRef);
-    console.log('📦 User snap exists:', userSnap.exists());
+    // console.log('📦 User snap exists:', userSnap.exists());
 
     if (userSnap.exists()) {
       const rawData = userSnap.data();
-      console.log('🔬 Raw data from Firestore:', rawData);
-      console.log('🔬 Raw data keys:', Object.keys(rawData));
+      // console.log('🔬 Raw data from Firestore:', rawData);
+      // console.log('🔬 Raw data keys:', Object.keys(rawData));
 
       const userData = {
         id: userSnap.id,
@@ -63,7 +63,7 @@ export const getUserDocument = async (uid) => {
         updatedAt: rawData.updatedAt,
         planExpiresAt: rawData.planExpiresAt
       };
-      console.log('✅ User data retrieved:', userData);
+      // console.log('✅ User data retrieved:', userData);
       return userData;
     }
     console.warn('⚠️ User document does not exist for UID:', uid);
@@ -534,18 +534,18 @@ export const validateUsername = (username) => {
 
 export const getUserByUsername = async (username) => {
   try {
-    console.log('🔍 Searching for username:', username);
+    // console.log('🔍 Searching for username:', username);
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('username', '==', username));
     const usersSnap = await getDocs(q);
-    console.log('📊 Query results:', usersSnap.size, 'documents found');
+    // console.log('📊 Query results:', usersSnap.size, 'documents found');
     if (usersSnap.empty) {
       console.warn('⚠️ No user found with username:', username);
       return null;
     }
     const userDoc = usersSnap.docs[0];
     const userData = { id: userDoc.id, ...userDoc.data() };
-    console.log('✅ User found by username:', userData);
+    // console.log('✅ User found by username:', userData);
     return userData;
   } catch (error) {
     console.error('❌ Error getting user by username:', error);
@@ -751,7 +751,7 @@ export const saveBinSearch = async (userId, binData) => {
       prepaid: binData.prepaid || false,
       timestamp: serverTimestamp()
     });
-    console.log('✅ BIN search saved');
+    // console.log('✅ BIN search saved');
   } catch (error) {
     console.error('Error saving BIN search:', error);
     throw error;
@@ -786,7 +786,7 @@ const fetchBinDataFromAPI = async (bin) => {
     const cacheDoc = await getDoc(cacheRef);
 
     if (cacheDoc.exists()) {
-      //console.log(`✅ BIN ${bin} encontrado en caché`);
+      //// console.log(`✅ BIN ${bin} encontrado en caché`);
       const cachedData = cacheDoc.data();
       return {
         bank: cachedData.bank,
@@ -799,7 +799,7 @@ const fetchBinDataFromAPI = async (bin) => {
     }
 
     // 2. Si no está en caché, consultar la API
-    console.log(`🌐 BIN ${bin} no está en caché, consultando API...`);
+    // console.log(`🌐 BIN ${bin} no está en caché, consultando API...`);
     const response = await fetch(`https://bin-ip-checker.p.rapidapi.com/?bin=${bin}`, {
       method: 'POST',
       headers: {
@@ -835,7 +835,7 @@ const fetchBinDataFromAPI = async (bin) => {
       lastUpdated: new Date().toISOString()
     });
 
-    console.log(`💾 BIN ${bin} guardado en caché`);
+    // console.log(`💾 BIN ${bin} guardado en caché`);
     return binInfo;
 
   } catch (error) {
@@ -874,9 +874,9 @@ export const getBinStats = async (period = 'all') => {
     const livesSnapshot = await getDocs(livesRef);
     let lives = livesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    console.log(`📊 Total lives antes de filtrar: ${lives.length}`);
-    console.log(`📅 Período seleccionado: ${period}`);
-    console.log(`🕐 Fecha de inicio: ${startDate}`);
+    // console.log(`📊 Total lives antes de filtrar: ${lives.length}`);
+    // console.log(`📅 Período seleccionado: ${period}`);
+    // console.log(`🕐 Fecha de inicio: ${startDate}`);
 
     // Filtrar por fecha si es necesario
     if (startDate) {
@@ -918,7 +918,7 @@ export const getBinStats = async (period = 'all') => {
         }
       });
       
-      console.log(`✅ Lives después de filtrar: ${lives.length} (filtrados: ${originalCount - lives.length})`);
+      // console.log(`✅ Lives después de filtrar: ${lives.length} (filtrados: ${originalCount - lives.length})`);
     }
 
     // Obtener información de BINs únicos desde la API
@@ -1080,7 +1080,7 @@ const SAMPLE_BINS = [
 
 export const generateTestLives = async (count = 100) => {
   try {
-    console.log(`🚀 Generando ${count} lives de prueba...`);
+    // console.log(`🚀 Generando ${count} lives de prueba...`);
     
     // Obtener gates existentes
     const gatesSnapshot = await getDocs(collection(db, 'gates'));
@@ -1091,7 +1091,7 @@ export const generateTestLives = async (count = 100) => {
       return;
     }
     
-    console.log(`✅ Encontrados ${gates.length} gates`);
+    // console.log(`✅ Encontrados ${gates.length} gates`);
     
     const createdLives = [];
     
@@ -1119,13 +1119,13 @@ export const generateTestLives = async (count = 100) => {
       createdLives.push({ id: liveRef.id, ...liveData });
       
       if ((i + 1) % 10 === 0) {
-        console.log(`📊 Progreso: ${i + 1}/${count} lives creadas`);
+        // console.log(`📊 Progreso: ${i + 1}/${count} lives creadas`);
       }
     }
     
-    console.log(`✅ ¡Completado! Se crearon ${createdLives.length} lives de prueba`);
-    console.log('🏦 BINs únicos:', [...new Set(createdLives.map(l => l.bin))].length);
-    console.log('🚪 Gates únicos:', [...new Set(createdLives.map(l => l.gateId))].length);
+    // console.log(`✅ ¡Completado! Se crearon ${createdLives.length} lives de prueba`);
+    // console.log('🏦 BINs únicos:', [...new Set(createdLives.map(l => l.bin))].length);
+    // console.log('🚪 Gates únicos:', [...new Set(createdLives.map(l => l.gateId))].length);
     
     return createdLives;
   } catch (error) {
@@ -1136,7 +1136,7 @@ export const generateTestLives = async (count = 100) => {
 
 export const deleteAllTestLives = async () => {
   try {
-    console.log('🗑️ Eliminando todas las lives...');
+    // console.log('🗑️ Eliminando todas las lives...');
     
     const livesSnapshot = await getDocs(collection(db, 'lives'));
     const deletions = [];
@@ -1148,7 +1148,7 @@ export const deleteAllTestLives = async () => {
     }
     
     await Promise.all(deletions);
-    console.log(`✅ Eliminadas ${deletions.length} lives`);
+    // console.log(`✅ Eliminadas ${deletions.length} lives`);
   } catch (error) {
     console.error('❌ Error eliminando lives:', error);
     throw error;
@@ -1747,7 +1747,7 @@ export const requestPasswordChange = async (userId) => {
     
     // TODO: Send code to Telegram bot
     // This will be handled by the Telegram bot service
-    console.log(`🔐 Password change code for user ${userId} (Telegram: ${telegramLink.telegramId}): ${code}`);
+    // console.log(`🔐 Password change code for user ${userId} (Telegram: ${telegramLink.telegramId}): ${code}`);
     
     return {
       success: true,

@@ -6,7 +6,7 @@ const InsertTestLives = () => {
     const { user } = useAuth();
 
     const handleInsert = async () => {
-        console.log('👤 User object:', user);
+        // console.log('👤 User object:', user);
 
         if (!user) {
             alert('❌ Debes estar autenticado');
@@ -19,8 +19,8 @@ const InsertTestLives = () => {
             return;
         }
 
-        console.log('🚀 Iniciando inserción de lives de prueba...');
-        console.log('📋 Datos del usuario:', {
+        // console.log('🚀 Iniciando inserción de lives de prueba...');
+        // console.log('📋 Datos del usuario:', {
             id: user.id,
             name: user.name,
             email: user.email

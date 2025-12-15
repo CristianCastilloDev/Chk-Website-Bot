@@ -8,7 +8,7 @@ import { db } from '../services/firebase';
 
 // Generar datos de órdenes
 export const generateTestOrders = async (count = 50) => {
-    console.log(`🔄 Generando ${count} órdenes de prueba...`);
+    // console.log(`🔄 Generando ${count} órdenes de prueba...`);
     
     const statuses = ['pending', 'approved', 'rejected'];
     const types = ['plan', 'credits'];
@@ -62,33 +62,33 @@ export const generateTestOrders = async (count = 50) => {
             await addDoc(ordersRef, order);
             savedCount++;
             if (savedCount % 10 === 0) {
-                console.log(`  ✓ ${savedCount}/${count} órdenes guardadas...`);
+                // console.log(`  ✓ ${savedCount}/${count} órdenes guardadas...`);
             }
         } catch (error) {
             errorCount++;
             if (errorCount === 1) {
                 console.error('❌ Error guardando orden:', error.message);
-                console.log('💡 Verifica que tu usuario tenga rol "admin" o "dev"');
-                console.log('💡 O actualiza temporalmente las reglas de Firebase');
+                // console.log('💡 Verifica que tu usuario tenga rol "admin" o "dev"');
+                // console.log('💡 O actualiza temporalmente las reglas de Firebase');
             }
         }
     }
     
     if (savedCount === 0 && errorCount > 0) {
-        console.log('\n⚠️  No se pudieron crear órdenes por permisos.');
-        console.log('📝 Solución temporal: En Firebase Console → Firestore → Rules');
-        console.log('   Cambia temporalmente analytics_orders a:');
-        console.log('   allow read, write: if request.auth != null;');
-        console.log('   Luego vuelve a ejecutar window.generateAnalyticsData()');
+        // console.log('\n⚠️  No se pudieron crear órdenes por permisos.');
+        // console.log('📝 Solución temporal: En Firebase Console → Firestore → Rules');
+        // console.log('   Cambia temporalmente analytics_orders a:');
+        // console.log('   allow read, write: if request.auth != null;');
+        // console.log('   Luego vuelve a ejecutar window.generateAnalyticsData()');
     }
     
-    console.log(`✅ ${savedCount} órdenes de prueba creadas exitosamente`);
+    // console.log(`✅ ${savedCount} órdenes de prueba creadas exitosamente`);
     return savedCount;
 };
 
 // Generar datos de actividad de usuarios
 export const generateTestUserActivity = async (count = 100) => {
-    console.log(`🔄 Generando ${count} registros de actividad...`);
+    // console.log(`🔄 Generando ${count} registros de actividad...`);
     
     const activities = ['login', 'gate_check', 'bin_search', 'live_check'];
     const userNames = ['User001', 'User002', 'User003', 'User004', 'User005'];
@@ -123,20 +123,20 @@ export const generateTestUserActivity = async (count = 100) => {
             await addDoc(activityRef, activity);
             savedCount++;
             if (savedCount % 20 === 0) {
-                console.log(`  ✓ ${savedCount}/${count} actividades guardadas...`);
+                // console.log(`  ✓ ${savedCount}/${count} actividades guardadas...`);
             }
         } catch (error) {
             console.error('Error guardando actividad:', error);
         }
     }
     
-    console.log(`✅ ${savedCount} registros de actividad creados exitosamente`);
+    // console.log(`✅ ${savedCount} registros de actividad creados exitosamente`);
     return savedCount;
 };
 
 // Generar datos de suscripciones
 export const generateTestSubscriptions = async (count = 30) => {
-    console.log(`🔄 Generando ${count} suscripciones de prueba...`);
+    // console.log(`🔄 Generando ${count} suscripciones de prueba...`);
     
     const types = ['plan', 'credits'];
     const userNames = ['User001', 'User002', 'User003', 'User004', 'User005'];
@@ -180,29 +180,29 @@ export const generateTestSubscriptions = async (count = 30) => {
             await addDoc(subsRef, sub);
             savedCount++;
             if (savedCount % 10 === 0) {
-                console.log(`  ✓ ${savedCount}/${count} suscripciones guardadas...`);
+                // console.log(`  ✓ ${savedCount}/${count} suscripciones guardadas...`);
             }
         } catch (error) {
             console.error('Error guardando suscripción:', error);
         }
     }
     
-    console.log(`✅ ${savedCount} suscripciones de prueba creadas exitosamente`);
+    // console.log(`✅ ${savedCount} suscripciones de prueba creadas exitosamente`);
     return savedCount;
 };
 
 // Generar todos los datos de prueba
 export const generateAllAnalyticsData = async () => {
-    console.log('🚀 Iniciando generación de datos de Analytics...\n');
+    // console.log('🚀 Iniciando generación de datos de Analytics...\n');
     
     try {
         await generateTestOrders(50);
-        console.log('');
+        // console.log('');
         await generateTestUserActivity(100);
-        console.log('');
+        // console.log('');
         await generateTestSubscriptions(30);
-        console.log('');
-        console.log('✅ ¡Todos los datos de prueba generados exitosamente!');
+        // console.log('');
+        // console.log('✅ ¡Todos los datos de prueba generados exitosamente!');
     } catch (error) {
         console.error('❌ Error generando datos:', error);
     }
@@ -210,7 +210,7 @@ export const generateAllAnalyticsData = async () => {
 
 // Eliminar todos los datos de prueba
 export const deleteAllAnalyticsData = async () => {
-    console.log('🗑️  Eliminando datos de prueba de Analytics...\n');
+    // console.log('🗑️  Eliminando datos de prueba de Analytics...\n');
     
     const collections = ['analytics_orders', 'analytics_activity', 'analytics_subscriptions'];
     
@@ -219,26 +219,26 @@ export const deleteAllAnalyticsData = async () => {
             const collectionRef = collection(db, collectionName);
             const snapshot = await getDocs(collectionRef);
             
-            console.log(`  Eliminando ${snapshot.size} documentos de ${collectionName}...`);
+            // console.log(`  Eliminando ${snapshot.size} documentos de ${collectionName}...`);
             
             for (const doc of snapshot.docs) {
                 await deleteDoc(doc.ref);
             }
             
-            console.log(`  ✓ ${collectionName} limpiado`);
+            // console.log(`  ✓ ${collectionName} limpiado`);
         } catch (error) {
             console.error(`  ❌ Error eliminando ${collectionName}:`, error);
         }
     }
     
-    console.log('\n✅ Todos los datos de prueba eliminados');
+    // console.log('\n✅ Todos los datos de prueba eliminados');
 };
 
 // Exportar para uso en consola del navegador
 if (typeof window !== 'undefined') {
     window.generateAnalyticsData = generateAllAnalyticsData;
     window.deleteAnalyticsData = deleteAllAnalyticsData;
-    console.log('📊 Funciones de Analytics disponibles:');
-    console.log('  - window.generateAnalyticsData() - Generar datos de prueba');
-    console.log('  - window.deleteAnalyticsData() - Eliminar datos de prueba');
+    // console.log('📊 Funciones de Analytics disponibles:');
+    // console.log('  - window.generateAnalyticsData() - Generar datos de prueba');
+    // console.log('  - window.deleteAnalyticsData() - Eliminar datos de prueba');
 }

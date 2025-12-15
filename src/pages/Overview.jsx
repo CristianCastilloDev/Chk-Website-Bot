@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
     TrendingUp, Users, Activity, Database, UserCheck, ShoppingCart,
     CheckCircle, CreditCard, DollarSign, FileText, Wallet, RefreshCw, ArrowRight
 } from 'lucide-react';
@@ -13,19 +13,20 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getDashboardStats } from '../services/statistics';
-import { 
-    getAnalyticsStats, 
-    getSalesDynamics, 
+import {
+    getAnalyticsStats,
+    getSalesDynamics,
     getUserActivity,
-    getCustomerOrders 
+    getCustomerOrders
 } from '../services/db';
+import UserAvatar from '../components/UserAvatar';
 import './Pages.css';
 
 const Overview = () => {
     const { user, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState([]);
-    
+
     // Analytics states (for admin/dev)
     const [dateRange, setDateRange] = useState('all');
     const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -39,10 +40,10 @@ const Overview = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                console.log('📊 Fetching dashboard stats...', { isAdmin: isAdmin(), userId: user?.id });
+                // console.log('📊 Fetching dashboard stats...', { isAdmin: isAdmin(), userId: user?.id });
 
                 const data = await getDashboardStats(isAdmin(), user?.id);
-                console.log('📊 Dashboard stats received:', data);
+                // console.log('📊 Dashboard stats received:', data);
 
                 if (isAdmin()) {
                     // Admin stats - Estadísticas del sistema completo
@@ -80,7 +81,7 @@ const Overview = () => {
                             change: `$${data.salesAmount?.toLocaleString() || 0}`
                         }
                     ];
-                    console.log('✅ Setting admin stats:', adminStats);
+                    // console.log('✅ Setting admin stats:', adminStats);
                     setStats(adminStats);
                 } else {
                     // Client stats
@@ -122,7 +123,7 @@ const Overview = () => {
                             change: 'Cuenta verificada'
                         }
                     ];
-                    console.log('✅ Setting client stats:', clientStats);
+                    // console.log('✅ Setting client stats:', clientStats);
                     setStats(clientStats);
                 }
             } catch (error) {
@@ -145,7 +146,7 @@ const Overview = () => {
     const loadAnalyticsData = async () => {
         try {
             setAnalyticsLoading(true);
-            
+
             const [statsData, sales, activity, orders] = await Promise.all([
                 getAnalyticsStats(dateRange),
                 getSalesDynamics(dateRange),
@@ -167,18 +168,18 @@ const Overview = () => {
     // Función separada para refrescar solo la tabla
     const refreshTable = async () => {
         if (!isAdmin()) return;
-        
+
         try {
             setTableLoading(true);
-            console.log('🔄 Refreshing orders table...');
-            
+            // console.log('🔄 Refreshing orders table...');
+
             // Delay de 2 segundos para mostrar la animación del skeleton
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             const orders = await getCustomerOrders(5);
             setOrdersTable(orders);
-            
-            console.log('✅ Orders table refreshed');
+
+            // console.log('✅ Orders table refreshed');
         } catch (error) {
             console.error('❌ Error refreshing table:', error);
         } finally {
@@ -276,7 +277,7 @@ const Overview = () => {
                         <div className="welcome-content">
                             <h2>🎉 Dashboard Personal</h2>
                             <p>
-                                Tu dashboard personal muestra tus lives asignadas, días restantes de plan y estado de cuenta. 
+                                Tu dashboard personal muestra tus lives asignadas, días restantes de plan y estado de cuenta.
                                 Todas las métricas se actualizan en tiempo real.
                             </p>
                         </div>
@@ -295,9 +296,9 @@ const Overview = () => {
                 transition={{ duration: 0.5 }}
             >
                 {/* Header */}
-                <div className="page-header" style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                <div className="page-header" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     marginBottom: '2rem',
                     flexWrap: 'wrap',
@@ -307,7 +308,7 @@ const Overview = () => {
                         <h1>Analytics Dashboard</h1>
                         <p>Métricas y estadísticas del sistema</p>
                     </div>
-                    <DateRangePicker 
+                    <DateRangePicker
                         value={dateRange}
                         onChange={handleDateRangeChange}
                     />
@@ -320,8 +321,8 @@ const Overview = () => {
                 ) : (
                     <>
                         {/* Metrics Grid - Top Row */}
-                        <div style={{ 
-                            display: 'grid', 
+                        <div style={{
+                            display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                             gap: '1.5rem',
                             marginBottom: '2rem'
@@ -333,14 +334,14 @@ const Overview = () => {
                                 comparison={analyticsStats?.orders.comparison}
                                 subtitle="Total de órdenes"
                             />
-                            
+
                             <MetricCard
                                 icon={<CheckCircle />}
                                 title="Aprobadas"
                                 value={analyticsStats?.orders.approved || 0}
                                 subtitle="Órdenes aprobadas"
                             />
-                            
+
                             <MetricCard
                                 icon={<Users />}
                                 title="Usuarios"
@@ -357,7 +358,7 @@ const Overview = () => {
                                     />
                                 }
                             />
-                            
+
                             <MetricCard
                                 icon={<CreditCard />}
                                 title="Suscripciones"
@@ -374,7 +375,7 @@ const Overview = () => {
                                     />
                                 }
                             />
-                            
+
                             <MetricCard
                                 icon={<Database />}
                                 title="Lives Totales"
@@ -384,8 +385,8 @@ const Overview = () => {
                         </div>
 
                         {/* Metrics Grid - Second Row */}
-                        <div style={{ 
-                            display: 'grid', 
+                        <div style={{
+                            display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                             gap: '1.5rem',
                             marginBottom: '2rem'
@@ -397,7 +398,7 @@ const Overview = () => {
                                 comparison={analyticsStats?.revenue.comparison}
                                 subtitle="Ingresos totales"
                             />
-                            
+
                             <MetricCard
                                 icon={<TrendingUp />}
                                 title="Ingresos"
@@ -408,8 +409,8 @@ const Overview = () => {
                         </div>
 
                         {/* Charts Section */}
-                        <div style={{ 
-                            display: 'grid', 
+                        <div style={{
+                            display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
                             gap: '1.5rem',
                             marginBottom: '2rem'
@@ -443,8 +444,8 @@ const Overview = () => {
                         </div>
 
                         {/* Progress Cards + Customer Orders Table - 3 Column Grid */}
-                        <div style={{ 
-                            display: 'grid', 
+                        <div style={{
+                            display: 'grid',
                             gridTemplateColumns: 'repeat(3, 1fr)',
                             gap: '1.5rem',
                             marginBottom: '2rem'
@@ -455,7 +456,7 @@ const Overview = () => {
                                     <FileText size={20} />
                                     <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Órdenes Aprobadas</h3>
                                 </div>
-                                <CircularProgress 
+                                <CircularProgress
                                     value={approvedOrdersPercent}
                                     size={120}
                                     color="success"
@@ -472,7 +473,7 @@ const Overview = () => {
                                     <Wallet size={20} />
                                     <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Fondos Recaudados</h3>
                                 </div>
-                                <CircularProgress 
+                                <CircularProgress
                                     value={fundsCollectedPercent}
                                     size={120}
                                     color="primary"
@@ -485,7 +486,7 @@ const Overview = () => {
 
                             {/* Customer Orders Table */}
                             <Card className="animate-fade-in" style={{ animationDelay: '0.2s', padding: '1rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem'}}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                                     <Title style={{ fontSize: '0.875rem', margin: 0 }}>📋 Órdenes de Clientes</Title>
                                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         {/* View All Orders Button */}
@@ -517,7 +518,7 @@ const Overview = () => {
                                             Ver todas
                                             <ArrowRight size={12} />
                                         </button>
-                                        
+
                                         {/* Refresh Button - Icon Only */}
                                         <button
                                             onClick={refreshTable}
@@ -544,139 +545,115 @@ const Overview = () => {
                                     </div>
                                 </div>
                                 <div style={{ overflowX: 'auto' }}>
-                                {tableLoading ? (
-                                    // Skeleton Loader - Same structure as real table
-                                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
-                                        <thead>
-                                            <tr>
-                                                <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
-                                                <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
-                                                <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {[...Array(5)].map((_, index) => (
-                                                <tr 
-                                                    key={index}
-                                                    style={{ 
-                                                        background: 'rgba(128, 128, 128, 0.1)',
-                                                        borderRadius: '12px'
-                                                    }}
-                                                >
-                                                    <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                            <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
-                                                            <div className="skeleton-text" style={{ width: '60%', height: '14px' }}></div>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ padding: '0.5rem' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                            <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
-                                                            <div className="skeleton-text" style={{ width: '50%', height: '14px' }}></div>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                                                        <div className="skeleton-text" style={{ width: '70px', height: '22px', borderRadius: '12px' }}></div>
-                                                    </td>
+                                    {tableLoading ? (
+                                        // Skeleton Loader - Same structure as real table
+                                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                ) : (
-                                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
-                                            <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
-                                            <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {ordersTable.map((order, index) => (
-                                            <tr 
-                                                key={order.id}
-                                                style={{ 
-                                                    background: order.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
-                                                               order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
-                                                               'rgba(239, 68, 68, 0.1)',
-                                                    borderRadius: '12px',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                    e.currentTarget.style.boxShadow = 'none';
-                                                }}
-                                            >
-                                                <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', fontSize: '0.875rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <div style={{
-                                                            width: '28px',
-                                                            height: '28px',
-                                                            borderRadius: '50%',
-                                                            background: order.profilePhoto ? `url(${order.profilePhoto})` : '#6366f1',
-                                                            backgroundSize: 'cover',
-                                                            backgroundPosition: 'center',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            color: 'white',
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: 600,
-                                                            flexShrink: 0
-                                                        }}>
-                                                            {!order.profilePhoto && (order.profile?.charAt(0) || 'A')}
-                                                        </div>
-                                                        <span>{order.profile}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '0.5rem', fontSize: '0.875rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <div style={{
-                                                            width: '28px',
-                                                            height: '28px',
-                                                            borderRadius: '50%',
-                                                            background: order.addressPhoto ? `url(${order.addressPhoto})` : '#10b981',
-                                                            backgroundSize: 'cover',
-                                                            backgroundPosition: 'center',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            color: 'white',
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: 600,
-                                                            flexShrink: 0
-                                                        }}>
-                                                            {!order.addressPhoto && (order.address?.charAt(0) || 'U')}
-                                                        </div>
-                                                        <span>{order.address}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                                                    <span style={{
-                                                        padding: '0.25rem 0.75rem',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 600,
-                                                        background: order.status === 'approved' ? '#10b981' :
-                                                                   order.status === 'pending' ? '#f59e0b' : '#ef4444',
-                                                        color: 'white'
-                                                    }}>
-                                                        {order.status === 'approved' ? 'Aprobado' :
-                                                         order.status === 'pending' ? 'Pendiente' : 'Rechazado'}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                    </table>
-                                )}
-                            </div>
-                        </Card>
-                    </div>
+                                            </thead>
+                                            <tbody>
+                                                {[...Array(5)].map((_, index) => (
+                                                    <tr
+                                                        key={index}
+                                                        style={{
+                                                            background: 'rgba(128, 128, 128, 0.1)',
+                                                            borderRadius: '12px'
+                                                        }}
+                                                    >
+                                                        <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
+                                                                <div className="skeleton-text" style={{ width: '60%', height: '14px' }}></div>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '0.5rem' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
+                                                                <div className="skeleton-text" style={{ width: '50%', height: '14px' }}></div>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                                                            <div className="skeleton-text" style={{ width: '70px', height: '22px', borderRadius: '12px' }}></div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
+                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {ordersTable.map((order, index) => (
+                                                    <tr
+                                                        key={order.id}
+                                                        style={{
+                                                            background: order.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
+                                                                order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
+                                                                    'rgba(239, 68, 68, 0.1)',
+                                                            borderRadius: '12px',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.transform = 'translateY(-2px)';
+                                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.transform = 'translateY(0)';
+                                                            e.currentTarget.style.boxShadow = 'none';
+                                                        }}
+                                                    >
+                                                        <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', fontSize: '0.875rem' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                <UserAvatar
+                                                                    photoURL={order.profilePhoto}
+                                                                    name={order.profile}
+                                                                    size="xs"
+                                                                />
+                                                                <span>{order.profile}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '0.5rem', fontSize: '0.875rem' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                                <UserAvatar
+                                                                    photoURL={order.addressPhoto}
+                                                                    name={order.address}
+                                                                    size="xs"
+                                                                />
+                                                                <span>{order.address}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                                                            <span style={{
+                                                                padding: '0.25rem 0.75rem',
+                                                                borderRadius: '12px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 600,
+                                                                background: order.status === 'approved' ? '#10b981' :
+                                                                    order.status === 'pending' ? '#f59e0b' : '#ef4444',
+                                                                color: 'white'
+                                                            }}>
+                                                                {order.status === 'approved' ? 'Aprobado' :
+                                                                    order.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </Card>
+                        </div>
                     </>
                 )}
             </motion.div>

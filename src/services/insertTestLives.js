@@ -63,8 +63,8 @@ export const insertTestLives = async (userId, userName, userEmail) => {
         }
     ];
 
-    console.log('🚀 Insertando lives de prueba...');
-    console.log('👤 Usuario:', userId, userName, userEmail);
+    // console.log('🚀 Insertando lives de prueba...');
+    // console.log('👤 Usuario:', userId, userName, userEmail);
 
     for (const testLive of testLives) {
         try {
@@ -76,7 +76,7 @@ export const insertTestLives = async (userId, userName, userEmail) => {
                 brand: 'Desconocido'
             };
 
-            console.log(`📊 BIN ${testLive.bin}: ${bankInfo.bank} - ${bankInfo.country}`);
+            // console.log(`📊 BIN ${testLive.bin}: ${bankInfo.bank} - ${bankInfo.country}`);
 
             const cardNumber = testLive.card.split('|')[0];
             const livesRef = collection(db, 'lives');
@@ -106,17 +106,17 @@ export const insertTestLives = async (userId, userName, userEmail) => {
                 timestamp: serverTimestamp()
             };
 
-            console.log('💾 Guardando live:', liveData);
+            // console.log('💾 Guardando live:', liveData);
 
             await addDoc(livesRef, liveData);
 
-            console.log(`✅ Live guardada: ${testLive.card.substring(0, 19)}... (${testLive.gateType})`);
+            // console.log(`✅ Live guardada: ${testLive.card.substring(0, 19)}... (${testLive.gateType})`);
         } catch (error) {
             console.error(`❌ Error guardando live:`, error);
             throw error; // Re-throw para que el componente lo capture
         }
     }
 
-    console.log('🎉 ¡Todas las lives de prueba han sido insertadas!');
-    console.log('📊 Ahora puedes ver las estadísticas en BIN Analytics');
+    // console.log('🎉 ¡Todas las lives de prueba han sido insertadas!');
+    // console.log('📊 Ahora puedes ver las estadísticas en BIN Analytics');
 };

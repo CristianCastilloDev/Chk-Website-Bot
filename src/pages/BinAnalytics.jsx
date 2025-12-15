@@ -132,7 +132,7 @@ const BinAnalytics = () => {
             let binInfo;
 
             if (cacheDoc.exists()) {
-                //console.log(`✅ BIN ${bin} encontrado en caché`);
+                //// console.log(`✅ BIN ${bin} encontrado en caché`);
                 const cachedData = cacheDoc.data();
                 binInfo = {
                     bin: bin,
@@ -146,7 +146,7 @@ const BinAnalytics = () => {
                 };
             } else {
                 // 2. Si no está en caché, consultar la API
-                console.log(`🌐 BIN ${bin} no está en caché, consultando API...`);
+                // console.log(`🌐 BIN ${bin} no está en caché, consultando API...`);
                 const response = await fetch(`https://bin-ip-checker.p.rapidapi.com/?bin=${bin}`, {
                     method: 'POST',
                     headers: {
@@ -167,7 +167,7 @@ const BinAnalytics = () => {
 
                 const data = await response.json();
 
-                //console.log('Respuesta de la API:', data);
+                //// console.log('Respuesta de la API:', data);
 
                 if (!data.success || data.BIN?.valid === false) {
                     throw new Error('BIN inválido. Por favor verifica el número.');
@@ -193,10 +193,10 @@ const BinAnalytics = () => {
                     lastUpdated: new Date().toISOString()
                 });
 
-                //console.log(`💾 BIN ${bin} guardado en caché`);
+                //// console.log(`💾 BIN ${bin} guardado en caché`);
             }
 
-            //console.log('BIN Info mapeado:', binInfo);
+            //// console.log('BIN Info mapeado:', binInfo);
 
             setResult(binInfo);
             await saveBinSearch(user.id, binInfo);
@@ -213,13 +213,13 @@ const BinAnalytics = () => {
     const searchGatesByBin = async (searchBinValue) => {
         try {
             setGateSearchLoading(true);
-            console.log('🔍 Buscando gates para BIN:', searchBinValue);
+            // console.log('🔍 Buscando gates para BIN:', searchBinValue);
 
             // Consultar TODOS los lives
             const livesRef = collection(db, 'lives');
             const querySnapshot = await getDocs(livesRef);
 
-            console.log('📊 Total de lives en Firestore:', querySnapshot.size);
+            // console.log('📊 Total de lives en Firestore:', querySnapshot.size);
 
             const lives = [];
             let sampleCount = 0;
@@ -228,7 +228,7 @@ const BinAnalytics = () => {
 
                 // Mostrar los primeros 3 como ejemplo
                 if (sampleCount < 3) {
-                    console.log(`📝 Ejemplo ${sampleCount + 1}:`, {
+                    // console.log(`📝 Ejemplo ${sampleCount + 1}:`, {
                         card: data.card,
                         gateName: data.gateName
                     });
@@ -247,7 +247,7 @@ const BinAnalytics = () => {
                 }
             });
 
-            console.log(`🎯 Lives encontrados con BIN ${searchBinValue}:`, lives.length);
+            // console.log(`🎯 Lives encontrados con BIN ${searchBinValue}:`, lives.length);
 
             if (lives.length === 0) {
                 setGateResults({
@@ -598,7 +598,7 @@ const BinAnalytics = () => {
                                     setChartPeriod(period);
                                     if (period === 'custom' && customRange) {
                                         // Handle custom range if needed
-                                        console.log('Custom range:', customRange);
+                                        // console.log('Custom range:', customRange);
                                     }
                                 }}
                             />
@@ -780,7 +780,7 @@ const BinAnalytics = () => {
                                 onChange={(period, customRange) => {
                                     setStatsPeriod(period);
                                     if (period === 'custom' && customRange) {
-                                        console.log('Custom range (stats):', customRange);
+                                        // console.log('Custom range (stats):', customRange);
                                     }
                                 }}
                             />
@@ -904,7 +904,7 @@ const BinAnalytics = () => {
                                 onChange={(period, customRange) => {
                                     setChartPeriod(period);
                                     if (period === 'custom' && customRange) {
-                                        console.log('Custom range (gates):', customRange);
+                                        // console.log('Custom range (gates):', customRange);
                                     }
                                 }}
                             />

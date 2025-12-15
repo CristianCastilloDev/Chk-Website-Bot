@@ -4,10 +4,10 @@ import { Save, User, Lock, Bell, MessageSquare, Link as LinkIcon, Unlink, AtSign
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { 
-    updateUserDocument, 
-    linkTelegramAccount, 
-    getTelegramLink, 
+import {
+    updateUserDocument,
+    linkTelegramAccount,
+    getTelegramLink,
     unlinkTelegramAccount,
     updateUserAnnouncements,
     requestPasswordChange,
@@ -26,7 +26,7 @@ const Settings = () => {
     const [telegramLink, setTelegramLink] = useState(null);
     const [telegramId, setTelegramId] = useState('');
     const [linkingTelegram, setLinkingTelegram] = useState(false);
-    
+
     // Password change state
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordStep, setPasswordStep] = useState('request'); // 'request' or 'confirm'
@@ -127,7 +127,7 @@ const Settings = () => {
 
     const handleConfirmPasswordChange = async (e) => {
         e.preventDefault();
-        
+
         if (newPassword !== confirmNewPassword) {
             showError('Las contraseñas no coinciden');
             return;
@@ -162,10 +162,6 @@ const Settings = () => {
                 transition={{ duration: 0.5 }}
                 className="settings-page-container"
             >
-                <div className="page-header-minimal">
-                    <h1>Configuración</h1>
-                    <p>Administra tu perfil y preferencias</p>
-                </div>
 
                 <div className="settings-grid">
                     {/* Profile Information */}
@@ -184,17 +180,17 @@ const Settings = () => {
                             {/* Profile Photo */}
                             <div className="form-field-minimal" style={{ alignItems: 'center' }}>
                                 <label>Foto de Perfil</label>
-                                <ProfilePhotoUpload 
+                                <ProfilePhotoUpload
                                     currentPhoto={user?.photoURL}
                                     userId={user?.id}
                                     onPhotoUpdate={(newPhoto) => {
                                         // Refresh user data or update local state
-                                        console.log('Photo updated:', newPhoto ? 'New photo' : 'Photo removed');
+                                        // console.log('Photo updated:', newPhoto ? 'New photo' : 'Photo removed');
                                     }}
                                 />
                                 {user?.photoSource === 'telegram' && (
-                                    <p style={{ 
-                                        fontSize: '0.85rem', 
+                                    <p style={{
+                                        fontSize: '0.85rem',
                                         color: 'var(--text-secondary)',
                                         marginTop: 'var(--space-sm)',
                                         textAlign: 'center'
@@ -262,8 +258,8 @@ const Settings = () => {
                                                 Abre Telegram, busca <strong>@ChkBot</strong> y envía <code>/start</code> para obtener tu ID
                                             </p>
                                         </div>
-                                        <button 
-                                            type="submit" 
+                                        <button
+                                            type="submit"
                                             className="btn-save-minimal"
                                             disabled={linkingTelegram || !telegramId}
                                         >
@@ -284,7 +280,7 @@ const Settings = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={handleUnlinkTelegram}
                                         className="btn-danger-minimal"
                                     >
@@ -345,7 +341,7 @@ const Settings = () => {
                             <p className="helper-text">
                                 Cambia tu contraseña de forma segura con confirmación vía Telegram
                             </p>
-                            <button 
+                            <button
                                 onClick={() => setShowPasswordModal(true)}
                                 className="btn-save-minimal"
                                 disabled={!telegramLink}
@@ -382,7 +378,7 @@ const Settings = () => {
                         >
                             <div className="modal-header">
                                 <h2>Cambiar Contraseña</h2>
-                                <button 
+                                <button
                                     className="modal-close"
                                     onClick={() => setShowPasswordModal(false)}
                                 >
@@ -395,7 +391,7 @@ const Settings = () => {
                                     <p className="modal-description">
                                         Se enviará un código de confirmación a tu cuenta de Telegram vinculada.
                                     </p>
-                                    <button 
+                                    <button
                                         onClick={handleRequestPasswordChange}
                                         className="btn-save-minimal"
                                         disabled={changingPassword}
@@ -445,7 +441,7 @@ const Settings = () => {
                                         />
                                     </div>
 
-                                    <button 
+                                    <button
                                         type="submit"
                                         className="btn-save-minimal"
                                         disabled={changingPassword}

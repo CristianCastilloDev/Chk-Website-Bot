@@ -15,7 +15,7 @@ export const updateStripeGate1 = async () => {
             // apiEndpoint: 'https://tu-endpoint.com/check'
         });
 
-        console.log('✅ Stripe Gate 1 actualizado a "Gate Funcional"');
+        // console.log('✅ Stripe Gate 1 actualizado a "Gate Funcional"');
         return true;
     } catch (error) {
         console.error('❌ Error actualizando gate:', error);
