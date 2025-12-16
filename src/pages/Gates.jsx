@@ -9,6 +9,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useAuth } from '../context/AuthContext';
 import { updateUserCredits, getAllGates, saveLive } from '../services/db';
 import './Pages.css';
+import './Gates.css';
 
 const Gates = () => {
     const [cards, setCards] = useState('');
@@ -363,9 +364,69 @@ const Gates = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <div className="page-header">
-                    <h1><Shield size={32} style={{ display: 'inline', marginRight: '10px' }} />Gates - Validador de Tarjetas</h1>
-                    <p>Selecciona un gate y valida tarjetas en tiempo real</p>
+                {/* Modern Page Header */}
+                <div className="page-header" style={{
+                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                    padding: '2rem',
+                    borderRadius: '12px',
+                    marginBottom: '2rem',
+                    border: '1px solid var(--glass-border)'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                            <h1 style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                margin: 0,
+                                marginBottom: '0.5rem',
+                                color: 'white',
+                                fontSize: '1.75rem'
+                            }}>
+                                <Shield size={32} />
+                                Gates - Validador de Tarjetas
+                            </h1>
+                            <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.95rem' }}>
+                                Selecciona un gate y valida tarjetas en tiempo real
+                            </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <button
+                                className="btn-secondary"
+                                onClick={() => navigate('/gates/my-lives')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    color: 'white',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                            >
+                                <Heart size={18} />
+                                Mis Lives
+                            </button>
+                            {results.length > 0 && (
+                                <button
+                                    className="btn-secondary"
+                                    onClick={exportResults}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        background: 'rgba(255, 255, 255, 0.2)',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                                        color: 'white',
+                                        backdropFilter: 'blur(10px)'
+                                    }}
+                                >
+                                    <Download size={18} />
+                                    Exportar CSV
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {!canUseGates && (
@@ -382,76 +443,83 @@ const Gates = () => {
                 )}
 
                 <div className={`gates-content ${!canUseGates ? 'disabled' : ''}`}>
-                    {/* Stats */}
-                    <div className="stats-grid" style={{ marginBottom: '2rem' }}>
-                        <motion.div className="stat-card glass">
-                            <div className="stat-icon gradient-primary">
-                                <Zap size={24} />
+                    {/* Modern Stats Cards */}
+                    <div className="gates-stats-grid">
+                        <motion.div
+                            className="gates-stat-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            <div className="gates-stat-icon primary">
+                                <Zap size={28} style={{ color: 'white' }} />
                             </div>
-                            <div className="stat-content">
-                                <h3 className="stat-value">{user?.credits || 0}</h3>
-                                <p className="stat-label">Créditos Disponibles</p>
-                            </div>
-                        </motion.div>
-
-                        <motion.div className="stat-card glass">
-                            <div className="stat-icon gradient-accent">
-                                <CheckCircle size={24} />
-                            </div>
-                            <div className="stat-content">
-                                <h3 className="stat-value">{results.filter(r => r.icon === 'live').length}</h3>
-                                <p className="stat-label">Live</p>
+                            <div className="gates-stat-content">
+                                <h3 className="gates-stat-value">{user?.credits || 0}</h3>
+                                <p className="gates-stat-label">Créditos Disponibles</p>
                             </div>
                         </motion.div>
 
-                        <motion.div className="stat-card glass">
-                            <div className="stat-icon gradient-secondary">
-                                <XCircle size={24} />
+                        <motion.div
+                            className="gates-stat-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <div className="gates-stat-icon success">
+                                <CheckCircle size={28} style={{ color: 'white' }} />
                             </div>
-                            <div className="stat-content">
-                                <h3 className="stat-value">{results.filter(r => r.icon === 'dead').length}</h3>
-                                <p className="stat-label">Dead</p>
+                            <div className="gates-stat-content">
+                                <h3 className="gates-stat-value" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    {results.filter(r => r.icon === 'live').length}
+                                </h3>
+                                <p className="gates-stat-label">Live</p>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            className="gates-stat-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <div className="gates-stat-icon danger">
+                                <XCircle size={28} style={{ color: 'white' }} />
+                            </div>
+                            <div className="gates-stat-content">
+                                <h3 className="gates-stat-value" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    {results.filter(r => r.icon === 'dead').length}
+                                </h3>
+                                <p className="gates-stat-label">Dead</p>
                             </div>
                         </motion.div>
                     </div>
 
 
 
-                    {/* Input Form */}
-                    <div className="glass" style={{ padding: '2rem', marginBottom: '2rem', borderRadius: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
-                            <h3 style={{ margin: 0 }}>Ingresar Tarjetas</h3>
+                    {/* Modern Input Form */}
+                    <div className="gates-input-card">
+                        <div className="gates-input-header">
+                            <h3 className="gates-input-title">
+                                <CreditCard size={20} />
+                                Ingresar Tarjetas
+                            </h3>
 
-                            {/* Gate Selector Dropdown */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {/* Gate Selector */}
+                            <div className="gates-gate-selector">
                                 <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Gate:</label>
                                 {loadingGates ? (
                                     <p style={{ margin: 0, fontSize: '0.9rem' }}>Cargando...</p>
                                 ) : (
                                     <button
                                         onClick={() => setShowGateModal(true)}
-                                        style={{
-                                            padding: '0.75rem 1.5rem',
-                                            borderRadius: '8px',
-                                            border: '2px solid var(--glass-border)',
-                                            background: selectedGate
-                                                ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))'
-                                                : 'var(--bg-secondary)',
-                                            color: 'var(--text-primary)',
-                                            fontSize: '0.9rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            transition: 'all 0.3s ease'
-                                        }}
+                                        className={`gates-gate-button ${selectedGate ? 'selected' : ''}`}
                                     >
                                         {selectedGate ? (
                                             <>
-                                                <span>{getGateIcon(selectedGate.type)}</span>
+                                                {getGateIcon(selectedGate.type)}
                                                 <span>{selectedGate.name}</span>
-                                                <span style={{ opacity: 0.7 }}>({selectedGate.category})</span>
+                                                <span style={{ opacity: 0.8, fontSize: '0.85rem' }}>({selectedGate.category})</span>
                                             </>
                                         ) : (
                                             <>
@@ -463,28 +531,20 @@ const Gates = () => {
                                 )}
                             </div>
                         </div>
+
                         <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                            Formato: <code>4557880011223344|12|26|123</code> (una por línea)
+                            Formato: <code style={{ background: 'var(--bg-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>4557880011223344|12|26|123</code> (una por línea)
                         </p>
+
                         <textarea
                             value={cards}
                             onChange={(e) => setCards(e.target.value)}
                             placeholder="4557880011223344|12|26|123&#10;5555555555554444|01|27|456"
-                            rows={8}
-                            style={{
-                                width: '100%',
-                                padding: '1rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--glass-border)',
-                                background: 'var(--bg-secondary)',
-                                color: 'var(--text-primary)',
-                                fontFamily: 'monospace',
-                                fontSize: '0.9rem',
-                                resize: 'vertical'
-                            }}
+                            className="gates-textarea"
                             disabled={!canUseGates || processing || !selectedGate}
                         />
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+
+                        <div className="gates-button-group">
                             <button
                                 className="btn-primary"
                                 onClick={handleValidate}
@@ -503,39 +563,24 @@ const Gates = () => {
                                 <Trash2 size={18} />
                                 Limpiar
                             </button>
-                            <button
-                                className="btn-secondary"
-                                onClick={() => navigate('/gates/my-lives')}
-                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                            >
-                                <Heart size={18} />
-                                Ver Mis Lives
-                            </button>
-                            {results.length > 0 && (
-                                <button
-                                    className="btn-secondary"
-                                    onClick={exportResults}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                                >
-                                    <Download size={18} />
-                                    Exportar CSV
-                                </button>
-                            )}
                         </div>
                     </div>
 
-                    {/* Results Table */}
+                    {/* Modern Results Table */}
                     {results.length > 0 && (
-                        <div className="glass" style={{ padding: '2rem', borderRadius: '12px' }}>
-                            <h3 style={{ marginBottom: '1rem' }}>Resultados ({results.length})</h3>
+                        <div className="gates-results-card">
+                            <div className="gates-results-header">
+                                <h3 className="gates-results-title">Resultados</h3>
+                                <span className="gates-results-count">{results.length}</span>
+                            </div>
                             <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <table className="gates-table">
                                     <thead>
-                                        <tr style={{ borderBottom: '2px solid var(--glass-border)' }}>
-                                            <th style={{ padding: '1rem', textAlign: 'left' }}>Tarjeta</th>
-                                            <th style={{ padding: '1rem', textAlign: 'left' }}>Status</th>
-                                            <th style={{ padding: '1rem', textAlign: 'left' }}>Resultado</th>
-                                            <th style={{ padding: '1rem', textAlign: 'left' }}>Tiempo</th>
+                                        <tr>
+                                            <th>Tarjeta</th>
+                                            <th>Status</th>
+                                            <th>Resultado</th>
+                                            <th>Tiempo</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -545,25 +590,24 @@ const Gates = () => {
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                style={{ borderBottom: '1px solid var(--glass-border)' }}
                                             >
-                                                <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                                                    {result.card}
+                                                <td>
+                                                    <span className="gates-card-number">{result.card}</span>
                                                 </td>
-                                                <td style={{ padding: '1rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <td>
+                                                    <span className={`gates-status-badge ${result.icon}`}>
                                                         {getStatusIcon(result.icon)}
-                                                        <span style={{ fontWeight: 600 }}>{result.status}</span>
-                                                    </div>
+                                                        {result.status}
+                                                    </span>
                                                 </td>
-                                                <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>
+                                                <td style={{ color: 'var(--text-secondary)' }}>
                                                     {result.result}
                                                 </td>
-                                                <td style={{ padding: '1rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                <td>
+                                                    <span className="gates-time">
                                                         <Clock size={14} />
                                                         {result.time}s
-                                                    </div>
+                                                    </span>
                                                 </td>
                                             </motion.tr>
                                         ))}
