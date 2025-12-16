@@ -44,13 +44,12 @@ const DashboardLayout = ({ children, currentPage }) => {
     const location = useLocation();
 
     const menuItems = [
-        // 1. Dashboard (renamed from Overview - Admin/Dev only)
+        // 1. Dashboard (visible to all users)
         {
             id: 'dashboard',
             label: 'Dashboard',
             icon: LayoutDashboard,
-            path: '/dashboard',
-            adminOnly: true
+            path: '/dashboard'
         },
         // 2. BIN Analytics (no submenu, top-level with badge)
         {
@@ -324,7 +323,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                     </nav>
 
                     <div className="sidebar-footer">
-                        {/* Upgrade Card */}
+                        {/* Upgrade Card
                         <div className="upgrade-card">
                             <div className="upgrade-illustration">
                                 📊
@@ -338,7 +337,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                             >
                                 Upgrade for free
                             </button>
-                        </div>
+                        </div> */}
 
                         {/* User Profile */}
                         <div className="user-profile-container">
@@ -369,14 +368,17 @@ const DashboardLayout = ({ children, currentPage }) => {
                         </div>
                     </div>
                 </aside>
-            )}
+            )
+            }
 
-            {sidebarOpen && (
-                <div
-                    className="sidebar-overlay"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+            {
+                sidebarOpen && (
+                    <div
+                        className="sidebar-overlay"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )
+            }
 
             {/* Main Content */}
             <div className="dashboard-main">
@@ -537,7 +539,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                     {children}
                 </main>
             </div>
-        </div>
+        </div >
     );
 };
 
