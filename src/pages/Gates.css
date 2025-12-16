@@ -294,14 +294,53 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .gates-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .gates-stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .gates-stat-card {
+        padding: 1.25rem;
+    }
+
+    .gates-stat-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gates-stat-value {
+        font-size: 1.75rem;
+    }
+
+    .gates-input-card {
+        padding: 1.5rem;
     }
 
     .gates-input-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .gates-input-title {
+        font-size: 1.1rem;
+    }
+
+    .gates-gate-selector {
+        width: 100%;
+    }
+
+    .gates-gate-button {
+        width: 100%;
+        justify-content: center;
+        padding: 0.875rem 1rem;
     }
 
     .gates-button-group {
@@ -311,6 +350,17 @@
 
     .gates-button-group button {
         width: 100%;
+        justify-content: center;
+    }
+
+    .gates-results-card {
+        padding: 1.5rem;
+    }
+
+    .gates-results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
     }
 
     .gates-table {
@@ -320,5 +370,83 @@
     .gates-table thead th,
     .gates-table tbody td {
         padding: 0.75rem 0.5rem;
+    }
+
+    .gates-card-number {
+        font-size: 0.75rem;
+        word-break: break-all;
+    }
+
+    .gates-status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gates-stat-value {
+        font-size: 1.5rem;
+    }
+
+    .gates-stat-label {
+        font-size: 0.8rem;
+    }
+
+    .gates-input-card {
+        padding: 1rem;
+    }
+
+    .gates-textarea {
+        min-height: 150px;
+        font-size: 0.85rem;
+    }
+
+    .gates-results-card {
+        padding: 1rem;
+    }
+
+    .gates-table {
+        font-size: 0.8rem;
+    }
+
+    .gates-table thead th,
+    .gates-table tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+
+    /* Make table scrollable on very small screens */
+    .gates-table thead th:first-child,
+    .gates-table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--bg-secondary);
+        z-index: 1;
+    }
+
+    .gates-card-number {
+        font-size: 0.7rem;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .gates-status-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        gap: 0.25rem;
+    }
+
+    .gates-status-badge svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .gates-time {
+        font-size: 0.75rem;
+    }
+
+    .gates-time svg {
+        width: 12px;
+        height: 12px;
     }
 }

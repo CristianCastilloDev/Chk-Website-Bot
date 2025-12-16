@@ -411,6 +411,19 @@ button:active::after {
 }
 
 /* ===== RESPONSIVE ===== */
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   html {
     font-size: 14px;
@@ -433,6 +446,132 @@ button:active::after {
   .clickable {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Page Headers */
+  .page-header {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .page-header p {
+    font-size: 0.875rem !important;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .stat-card {
+    padding: 1.25rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.75rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.875rem !important;
+  }
+
+  /* Tables */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    font-size: 0.875rem !important;
+  }
+
+  table th,
+  table td {
+    padding: 0.75rem 0.5rem !important;
+    white-space: nowrap;
+  }
+
+  /* Cards */
+  .glass,
+  .card {
+    padding: 1.5rem 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Forms */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    /* Prevents zoom on iOS */
+  }
+
+  /* Modals */
+  .modal-content {
+    margin: 1rem !important;
+    max-width: calc(100% - 2rem) !important;
+  }
+
+  /* Sidebar adjustments */
+  .dashboard-main {
+    padding: 1rem !important;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+
+  .page-header {
+    padding: 1rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.5rem !important;
+  }
+
+  .glass,
+  .card {
+    padding: 1rem !important;
+  }
+
+  table {
+    font-size: 0.8rem !important;
+  }
+
+  table th,
+  table td {
+    padding: 0.5rem 0.25rem !important;
+  }
+
+  /* Make first column sticky on very small screens */
+  table thead th:first-child,
+  table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--bg-secondary);
+    z-index: 1;
   }
 }
 
