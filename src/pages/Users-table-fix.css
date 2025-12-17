@@ -1,33 +1,292 @@
-﻿/* Users Table */
-.users-table {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
+﻿/* ==================== USERS PAGE MOBILE OPTIMIZATION ==================== */
+
+/* Statistics Cards - Mobile Responsive */
+@media (max-width: 767px) {
+
+    /* Stats Grid - 2 columns on mobile */
+    .page-header+div[style*="grid-template-columns: repeat(5, 1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    /* Stat Cards - Compact */
+    .page-header+div[style*="grid-template-columns: repeat(5, 1fr)"]>.glass {
+        padding: 1rem !important;
+    }
+
+    .page-header+div[style*="grid-template-columns: repeat(5, 1fr)"]>.glass h3 {
+        font-size: 0.75rem !important;
+    }
+
+    .page-header+div[style*="grid-template-columns: repeat(5, 1fr)"]>.glass p {
+        font-size: 1.5rem !important;
+    }
 }
 
-.table-header {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.table-body {
+/* Users Filters - Mobile */
+.users-filters {
     display: flex;
     flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.table-row {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-    border-bottom: 1px solid var(--glass-border);
-    transition: background var(--transition-fast);
+@media (max-width: 767px) {
+    .users-filters {
+        padding: 1rem;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-box input {
+        font-size: 0.9rem;
+    }
+
+    .role-filter select {
+        font-size: 0.9rem;
+    }
 }
 
-.table-row:last-child {
-    border-bottom: none;
+/* ==================== TABLE TO CARDS ON MOBILE ==================== */
+
+/* Desktop - Table Layout */
+@media (min-width: 768px) {
+    .users-table {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    .table-header {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
+        gap: var(--space-md);
+        padding: var(--space-lg);
+        background: var(--bg-secondary);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .table-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr;
+        gap: var(--space-md);
+        padding: var(--space-lg);
+        border-bottom: 1px solid var(--glass-border);
+        transition: background var(--transition-fast);
+    }
+
+    .table-row:last-child {
+        border-bottom: none;
+    }
+}
+
+/* Mobile - Card Layout */
+@media (max-width: 767px) {
+    .users-table {
+        border-radius: var(--radius-card);
+        overflow: visible;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+
+    /* Hide table header on mobile */
+    .table-header {
+        display: none !important;
+    }
+
+    .table-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    /* Convert table rows to cards */
+    .table-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem !important;
+        background: var(--bg-secondary);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-card);
+        border-bottom: 1px solid var(--glass-border) !important;
+    }
+
+    /* Each cell becomes a row in the card */
+    .table-cell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 !important;
+        min-height: auto;
+    }
+
+    /* Add labels before each cell on mobile */
+    .table-cell:nth-child(1)::before {
+        content: '';
+        display: none;
+    }
+
+    .table-cell:nth-child(2)::before {
+        content: 'Email:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .table-cell:nth-child(3)::before {
+        content: 'Rol:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .table-cell:nth-child(4)::before {
+        content: 'Créditos:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .table-cell:nth-child(5)::before {
+        content: 'Plan:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .table-cell:nth-child(6)::before {
+        content: 'Días:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    .table-cell:nth-child(7)::before {
+        content: 'Acciones:';
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+
+    /* User cell - Full width, prominent */
+    .table-cell:nth-child(1) {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 1px solid var(--glass-border);
+        margin-bottom: 0.5rem;
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .user-avatar-small {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .user-name-text {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Email cell */
+    .email-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Role badge */
+    .role-badge {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Credits cell */
+    .credits-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* Plan badge */
+    .plan-badge {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Days cell */
+    .days-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .detail-user-btn,
+    .edit-user-btn {
+        padding: 0.5rem !important;
+        min-width: 36px;
+        min-height: 36px;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+    .table-row {
+        padding: 0.85rem !important;
+        gap: 0.65rem;
+    }
+
+    .table-cell {
+        font-size: 0.85rem;
+    }
+
+    .table-cell::before {
+        font-size: 0.75rem !important;
+    }
+
+    .user-avatar-small {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .user-name-text {
+        font-size: 0.9rem !important;
+    }
+
+    .role-badge,
+    .plan-badge {
+        padding: 0.3rem 0.65rem !important;
+        font-size: 0.7rem !important;
+    }
 }

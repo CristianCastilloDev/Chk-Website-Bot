@@ -7,6 +7,7 @@ import UserDetailModal from '../components/UserDetailModal';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { getAllUsers } from '../services/db';
 import './Pages.css';
+import './Users-table-fix.css';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -33,27 +34,27 @@ const Users = () => {
         try {
             // Delay de 2 segundos para mostrar la animación del skeleton
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             const fetchedUsers = await getAllUsers();
             setUsers(fetchedUsers);
-            
+
             // Calculate statistics
             const admins = fetchedUsers.filter(u => u.role === 'admin').length;
             const devs = fetchedUsers.filter(u => u.role === 'dev').length;
             const members = fetchedUsers.filter(u => u.role !== 'admin' && u.role !== 'dev').length;
-            
+
             const now = new Date();
             const activePlans = fetchedUsers.filter(u => {
                 if (u.role === 'admin' || u.role === 'dev') return false;
                 const expiresAt = u.planExpiresAt?.toDate ? u.planExpiresAt.toDate() : null;
                 return expiresAt && expiresAt > now;
             }).length;
-            
+
             const expiredPlans = fetchedUsers.filter(u => {
                 const expiresAt = u.planExpiresAt?.toDate ? u.planExpiresAt.toDate() : null;
                 return expiresAt && expiresAt < now;
             }).length;
-            
+
             setStats({ admins, devs, members, activePlans, expiredPlans });
         } catch (error) {
             console.error('Error loading users:', error);
@@ -223,8 +224,8 @@ const Users = () => {
                 </div>
 
                 {/* Statistics Cards */}
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(5, 1fr)',
                     gap: '1rem',
                     marginBottom: '1.5rem'
@@ -341,7 +342,7 @@ const Users = () => {
                                         <div className="user-cell">
                                             <div
                                                 className="user-avatar-small"
-                                                style={{ 
+                                                style={{
                                                     background: user.photoURL ? 'transparent' : (user.avatar?.color || '#6366f1'),
                                                     backgroundImage: user.photoURL ? `url(${user.photoURL})` : 'none',
                                                     backgroundSize: 'cover',
