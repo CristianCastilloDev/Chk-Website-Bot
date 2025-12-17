@@ -76,8 +76,6 @@
     .table-row {
         /* display: grid;
         grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1.2fr 1.5fr; */
-        display: flex;
-        align-items: center;
         gap: var(--space-md);
         padding: var(--space-lg);
         border-bottom: 1px solid var(--glass-border);
