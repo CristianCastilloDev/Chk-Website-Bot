@@ -11,7 +11,7 @@
 .gates-stat-card {
     background: var(--bg-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    border-radius: var(--radius-card);
     padding: 1.5rem;
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@
 .gates-input-card {
     background: var(--bg-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    border-radius: var(--radius-card);
     padding: 2rem;
     margin-bottom: 2rem;
 }
@@ -177,7 +177,7 @@
 .gates-results-card {
     background: var(--bg-secondary);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    border-radius: var(--radius-card);
     padding: 2rem;
     overflow: hidden;
 }

@@ -31,7 +31,7 @@
 /* Tarjeta individual de estadística */
 .stat-card {
   padding: var(--space-lg);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   transition: all var(--transition-base);
   opacity: 1 !important;
   visibility: visible !important;
@@ -95,7 +95,7 @@
 /* Contenedor de la sección de bienvenida */
 .welcome-section {
   padding: var(--space-xl);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   margin-top: var(--space-xl);
 }
 
@@ -121,7 +121,7 @@
 /* Tarjeta contenedora de gráfica */
 .chart-card {
   padding: var(--space-lg);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
 }
 
 /* Título de la gráfica */
@@ -334,7 +334,7 @@
 /* Tarjeta de sección de configuración */
 .settings-card {
   padding: var(--space-xl);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
 }
 
 /* Título de tarjeta de configuración con borde inferior */
@@ -599,7 +599,7 @@
 /* ==================== TABLA DE USUARIOS ==================== */
 /* Contenedor de tabla de usuarios */
 .users-table {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   overflow: hidden;
   position: relative;
 }
@@ -702,6 +702,7 @@
 /* ==================== RESPONSIVE DESIGN ==================== */
 /* Tablets y dispositivos medianos (max-width: 768px) */
 @media (max-width: 768px) {
+
   /* Grid de estadísticas en una columna */
   .stats-grid {
     grid-template-columns: 1fr;
@@ -737,6 +738,7 @@
 
 /* Móviles pequeños (max-width: 480px) */
 @media (max-width: 480px) {
+
   /* Título de página más pequeño */
   .page-header h1 {
     font-size: 1.75rem;
@@ -821,6 +823,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -847,16 +850,19 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -1163,12 +1169,12 @@
   border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background-color: var(--primary);
   border-color: var(--primary);
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(24px);
   background-color: white;
 }

@@ -47,21 +47,21 @@ export default {
             faint: "#0B1229", // custom
             muted: "#172554", // blue-950
             subtle: "#1e40af", // blue-800
-            DEFAULT: "#3b82f6", // blue-500
-            emphasis: "#60a5fa", // blue-400
+            DEFAULT: "#5B9FED", // updated primary blue
+            emphasis: "#7AB3F5", // lighter blue
             inverted: "#030712", // gray-950
           },
           background: {
-            muted: "#131A2B", // custom
-            subtle: "#1f2937", // gray-800
-            DEFAULT: "#111827", // gray-900
+            muted: "#1A1D2E", // updated to match new bg-primary
+            subtle: "#22283A", // updated to match new bg-secondary
+            DEFAULT: "#1A1D2E", // updated to match new bg-primary
             emphasis: "#d1d5db", // gray-300
           },
           border: {
-            DEFAULT: "#1f2937", // gray-800
+            DEFAULT: "#2C3142", // updated to match new bg-tertiary
           },
           ring: {
-            DEFAULT: "#1f2937", // gray-800
+            DEFAULT: "#2C3142", // updated to match new bg-tertiary
           },
           content: {
             subtle: "#4b5563", // gray-600
@@ -71,6 +71,14 @@ export default {
             inverted: "#000000", // black
           },
         },
+      },
+      // Custom icon colors for minimalist design
+      colors: {
+        "icon-blue": "#5B9FED",
+        "icon-orange": "#F59E0B",
+        "icon-pink": "#EC4899",
+        "icon-cyan": "#06B6D4",
+        "icon-purple": "#A78BFA",
       },
       boxShadow: {
         // light
@@ -87,9 +95,10 @@ export default {
           "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
       },
       borderRadius: {
-        "tremor-small": "0.375rem",
-        "tremor-default": "0.5rem",
+        "tremor-small": "0.625rem",
+        "tremor-default": "1rem",
         "tremor-full": "9999px",
+        "card": "1.25rem",
       },
       fontSize: {
         "tremor-label": ["0.75rem", { lineHeight: "1rem" }],

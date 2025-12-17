@@ -20,7 +20,10 @@ import {
     getCustomerOrders
 } from '../services/db';
 import UserAvatar from '../components/UserAvatar';
+import CategoryCard from '../components/CategoryCard';
+import RecentItem from '../components/RecentItem';
 import './Pages.css';
+import './Overview.css';
 
 const Overview = () => {
     const { user, isAdmin } = useAuth();
@@ -221,8 +224,80 @@ const Overview = () => {
         visible: { opacity: 1, y: 0 }
     };
 
-    // Render for regular users (non-admin)
+    // Render for regular users (non-admin) - Mobile File Manager Design
     if (!isAdmin()) {
+        // Prepare categories data
+        const remainingDays = user?.planExpiresAt
+            ? Math.max(0, Math.ceil((user.planExpiresAt.toDate() - new Date()) / (1000 * 60 * 60 * 24)))
+            : 0;
+
+        const categories = [
+            {
+                id: 1,
+                name: 'My Lives',
+                icon: Database,
+                iconColor: '#5B9FED', // Blue
+                count: stats.find(s => s.label === 'Lives Asignadas')?.value || '0',
+                size: 'Available',
+                link: '/gates/my-lives'
+            },
+            {
+                id: 2,
+                name: 'Gates',
+                icon: Activity,
+                iconColor: '#F59E0B', // Orange
+                count: '5',
+                size: 'Active',
+                link: '/dashboard/gates'
+            },
+            {
+                id: 3,
+                name: 'Tools',
+                icon: FileText,
+                iconColor: '#06B6D4', // Cyan
+                count: '3',
+                size: 'Available',
+                link: '/dashboard/herramientas'
+            },
+            {
+                id: 4,
+                name: 'Settings',
+                icon: Users,
+                iconColor: '#EC4899', // Pink
+                count: '1',
+                size: user?.role?.toUpperCase() || 'MEMBER',
+                link: '/dashboard/settings'
+            }
+        ];
+
+        // Recent activity items
+        const recentItems = [
+            {
+                id: 1,
+                name: 'Stripe Gate',
+                date: '01-03-2021',
+                size: 'Live',
+                icon: CheckCircle,
+                iconColor: '#10b981'
+            },
+            {
+                id: 2,
+                name: 'PayPal Gate',
+                date: '27-02-2021',
+                size: 'Live',
+                icon: CheckCircle,
+                iconColor: '#10b981'
+            },
+            {
+                id: 3,
+                name: `Plan: ${remainingDays} days`,
+                date: '23-02-2021',
+                size: remainingDays > 0 ? 'Active' : 'Expired',
+                icon: CreditCard,
+                iconColor: remainingDays > 0 ? '#5B9FED' : '#ef4444'
+            }
+        ];
+
         return (
             <DashboardLayout currentPage="overview">
                 <motion.div
@@ -230,64 +305,134 @@ const Overview = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div className="page-header">
-                        <h1>Resumen</h1>
-                        <p>Bienvenido {user?.name}! Aquí está tu resumen.</p>
+                    {/* Search Bar */}
+                    <div className="dashboard-search-container">
+                        <div className="dashboard-search-bar">
+                            <div className="dashboard-search-icon">
+                                <TrendingUp size={24} />
+                            </div>
+                            <input
+                                type="text"
+                                className="dashboard-search-input"
+                                placeholder="Search"
+                            />
+                        </div>
                     </div>
 
-                    <motion.div
-                        className="stats-grid"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        {stats.length === 0 ? (
-                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: 'var(--text-primary)' }}>
-                                Cargando estadísticas...
-                            </div>
-                        ) : (
-                            stats.map((stat) => (
-                                <motion.div
-                                    key={stat.id}
-                                    className="stat-card glass"
-                                    variants={itemVariants}
-                                    whileHover={{ y: -5, boxShadow: 'var(--shadow-lg)' }}
-                                >
-                                    <div className="stat-header">
-                                        <div className={`stat-icon ${stat.gradient}`}>
-                                            <stat.icon size={24} />
-                                        </div>
-                                        <span className="stat-change">{stat.change}</span>
-                                    </div>
-                                    <div className="stat-content">
-                                        <h3 className="stat-value">{stat.value}</h3>
-                                        <p className="stat-label">{stat.label}</p>
-                                    </div>
-                                </motion.div>
-                            ))
-                        )}
-                    </motion.div>
+                    {/* My Files Section */}
+                    <div className="dashboard-section-header">
+                        <h2 className="dashboard-section-title">My Files</h2>
+                        <button className="dashboard-add-button">
+                            <span>+</span>
+                            <span>Add New</span>
+                        </button>
+                    </div>
 
-                    <motion.div
-                        className="welcome-section glass"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <div className="welcome-content">
-                            <h2>🎉 Dashboard Personal</h2>
-                            <p>
-                                Tu dashboard personal muestra tus lives asignadas, días restantes de plan y estado de cuenta.
-                                Todas las métricas se actualizan en tiempo real.
-                            </p>
+                    {/* Category Grid */}
+                    <div className="category-grid">
+                        {categories.map((category) => (
+                            <CategoryCard
+                                key={category.id}
+                                name={category.name}
+                                icon={category.icon}
+                                iconColor={category.iconColor}
+                                count={category.count}
+                                size={category.size}
+                                onClick={() => navigate(category.link)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Recent Files Section */}
+                    <div className="recent-section">
+                        <h2 className="recent-header">Recent Files</h2>
+                        <div className="recent-list">
+                            {recentItems.map((item) => (
+                                <RecentItem
+                                    key={item.id}
+                                    name={item.name}
+                                    date={item.date}
+                                    size={item.size}
+                                    icon={item.icon}
+                                    iconColor={item.iconColor}
+                                />
+                            ))}
                         </div>
-                    </motion.div>
+                    </div>
                 </motion.div>
             </DashboardLayout>
         );
     }
 
-    // Render for admin/dev - Full Analytics Dashboard
+    // Render for admin/dev - Mobile File Manager Design
+    // Prepare admin categories
+    const adminCategories = [
+        {
+            id: 1,
+            name: 'Órdenes',
+            icon: ShoppingCart,
+            iconColor: '#5B9FED', // Blue
+            count: analyticsStats?.orders.total || '0',
+            size: `${analyticsStats?.orders.approved || 0} Approved`,
+            link: '/dashboard/orders'
+        },
+        {
+            id: 2,
+            name: 'Usuarios',
+            icon: Users,
+            iconColor: '#F59E0B', // Orange
+            count: analyticsStats?.users.total || '0',
+            size: `${analyticsStats?.users.active || 0} Active`,
+            link: '/dashboard/users'
+        },
+        {
+            id: 3,
+            name: 'Lives Totales',
+            icon: Database,
+            iconColor: '#06B6D4', // Cyan
+            count: analyticsStats?.lives.total?.toLocaleString() || '0',
+            size: `${analyticsStats?.lives.available || 0} Available`,
+            link: '/admin/lives'
+        },
+        {
+            id: 4,
+            name: 'Ventas',
+            icon: DollarSign,
+            iconColor: '#EC4899', // Pink
+            count: analyticsStats?.subscriptions.total || '0',
+            size: `$${analyticsStats?.revenue.total || 0}`,
+            link: '/dashboard/sales'
+        },
+        {
+            id: 5,
+            name: 'Suscripciones',
+            icon: CreditCard,
+            iconColor: '#8b5cf6', // Purple
+            count: analyticsStats?.subscriptions.total || '0',
+            size: `${analyticsStats?.subscriptions.plans || 0} Plans`,
+            link: '/dashboard/sales'
+        },
+        {
+            id: 6,
+            name: 'Gates',
+            icon: Activity,
+            iconColor: '#10b981', // Green
+            count: '5',
+            size: 'Active',
+            link: '/admin/gate-status'
+        }
+    ];
+
+    // Recent admin activity
+    const recentAdminItems = ordersTable.slice(0, 5).map((order, index) => ({
+        id: index + 1,
+        name: `${order.profile} → ${order.address}`,
+        date: new Date().toLocaleDateString('es-ES'),
+        size: order.status === 'approved' ? 'Approved' : order.status === 'pending' ? 'Pending' : 'Rejected',
+        icon: order.status === 'approved' ? CheckCircle : order.status === 'pending' ? RefreshCw : Activity,
+        iconColor: order.status === 'approved' ? '#10b981' : order.status === 'pending' ? '#f59e0b' : '#ef4444'
+    }));
+
     return (
         <DashboardLayout currentPage="overview">
             <motion.div
@@ -295,364 +440,166 @@ const Overview = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                {/* Header */}
-                <div className="page-header" style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '2rem',
-                    flexWrap: 'wrap',
-                    gap: '1rem'
-                }}>
-                    <div>
-                        <h1>Analytics Dashboard</h1>
-                        <p>Métricas y estadísticas del sistema</p>
+                {/* Search Bar */}
+                <div className="dashboard-search-container">
+                    <div className="dashboard-search-bar">
+                        <div className="dashboard-search-icon">
+                            <TrendingUp size={24} />
+                        </div>
+                        <input
+                            type="text"
+                            className="dashboard-search-input"
+                            placeholder="Search analytics, users, orders..."
+                        />
+                        <DateRangePicker
+                            value={dateRange}
+                            onChange={handleDateRangeChange}
+                        />
                     </div>
-                    <DateRangePicker
-                        value={dateRange}
-                        onChange={handleDateRangeChange}
-                    />
                 </div>
 
                 {analyticsLoading ? (
-                    <div style={{ textAlign: 'center', padding: '3rem' }}>
-                        <p>Cargando analytics...</p>
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-primary)' }}>
+                        Cargando analytics...
                     </div>
                 ) : (
                     <>
-                        {/* Metrics Grid - Top Row */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                            gap: '1.5rem',
-                            marginBottom: '2rem'
-                        }}>
-                            <MetricCard
-                                icon={<ShoppingCart />}
-                                title="Órdenes"
-                                value={analyticsStats?.orders.total || 0}
-                                comparison={analyticsStats?.orders.comparison}
-                                subtitle="Total de órdenes"
-                            />
-
-                            <MetricCard
-                                icon={<CheckCircle />}
-                                title="Aprobadas"
-                                value={analyticsStats?.orders.approved || 0}
-                                subtitle="Órdenes aprobadas"
-                            />
-
-                            <MetricCard
-                                icon={<Users />}
-                                title="Usuarios"
-                                value={analyticsStats?.users.total || 0}
-                                subtitle="Usuarios activos"
-                                chart={
-                                    <DonutChart
-                                        data={usersChartData}
-                                        category="value"
-                                        index="name"
-                                        colors={['emerald', 'cyan', 'gray']}
-                                        showLabel={false}
-                                        className="h-24"
-                                    />
-                                }
-                            />
-
-                            <MetricCard
-                                icon={<CreditCard />}
-                                title="Suscripciones"
-                                value={analyticsStats?.subscriptions.total || 0}
-                                subtitle="Total de suscripciones"
-                                chart={
-                                    <DonutChart
-                                        data={subsChartData}
-                                        category="value"
-                                        index="name"
-                                        colors={['violet', 'amber']}
-                                        showLabel={false}
-                                        className="h-24"
-                                    />
-                                }
-                            />
-
-                            <MetricCard
-                                icon={<Database />}
-                                title="Lives Totales"
-                                value={analyticsStats?.lives.total?.toLocaleString() || '0'}
-                                subtitle={`${analyticsStats?.lives.available || 0} disponibles`}
-                            />
+                        {/* Admin Files Section */}
+                        <div className="dashboard-section-header">
+                            <h2 className="dashboard-section-title">Analytics Dashboard</h2>
+                            <button
+                                className="dashboard-add-button"
+                                onClick={() => navigate('/dashboard/analytics')}
+                            >
+                                <span>📊</span>
+                                <span>View Full Analytics</span>
+                            </button>
                         </div>
 
-                        {/* Metrics Grid - Second Row */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                            gap: '1.5rem',
-                            marginBottom: '2rem'
-                        }}>
-                            <MetricCard
-                                icon={<DollarSign />}
-                                title="Total del Mes"
-                                value={`$${analyticsStats?.revenue.total || 0}`}
-                                comparison={analyticsStats?.revenue.comparison}
-                                subtitle="Ingresos totales"
-                            />
-
-                            <MetricCard
-                                icon={<TrendingUp />}
-                                title="Ingresos"
-                                value={`$${analyticsStats?.revenue.total || 0}`}
-                                comparison={analyticsStats?.revenue.comparison}
-                                subtitle="Comparado con mes anterior"
-                            />
+                        {/* Category Grid */}
+                        <div className="category-grid">
+                            {adminCategories.map((category) => (
+                                <CategoryCard
+                                    key={category.id}
+                                    name={category.name}
+                                    icon={category.icon}
+                                    iconColor={category.iconColor}
+                                    count={category.count}
+                                    size={category.size}
+                                    onClick={() => navigate(category.link)}
+                                />
+                            ))}
                         </div>
 
-                        {/* Charts Section */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
-                            gap: '1.5rem',
-                            marginBottom: '2rem'
-                        }}>
-                            <Card className="animate-fade-in">
-                                <Title>📊 Ventas Dinámicas</Title>
-                                <BarChart
-                                    className="mt-6"
-                                    data={salesData}
-                                    index="month"
-                                    categories={["plans", "credits"]}
-                                    colors={["blue", "amber"]}
-                                    valueFormatter={(value) => `$${value}`}
-                                    stack={true}
-                                    yAxisWidth={48}
-                                />
-                            </Card>
-
-                            <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
-                                <Title>📈 Actividad de Usuarios</Title>
-                                <AreaChart
-                                    className="mt-6"
-                                    data={activityData}
-                                    index="date"
-                                    categories={["count"]}
-                                    colors={["violet"]}
-                                    valueFormatter={(value) => `${value} Acciones`}
-                                    yAxisWidth={48}
-                                />
-                            </Card>
-                        </div>
-
-                        {/* Progress Cards + Customer Orders Table - 3 Column Grid */}
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(3, 1fr)',
-                            gap: '1.5rem',
-                            marginBottom: '2rem'
-                        }}>
-                            {/* Órdenes Aprobadas */}
-                            <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                    <FileText size={20} />
-                                    <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Órdenes Aprobadas</h3>
-                                </div>
-                                <CircularProgress
-                                    value={approvedOrdersPercent}
-                                    size={120}
-                                    color="success"
-                                />
-                                <p style={{ marginTop: '1rem', fontSize: '1.5rem', fontWeight: 700 }}>
-                                    ${(analyticsStats?.revenue.total * 0.7).toFixed(2)}
-                                </p>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Año Fiscal Actual</p>
+                        {/* Recent Orders Section */}
+                        <div className="recent-section">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h2 className="recent-header">Recent Orders</h2>
+                                <button
+                                    onClick={refreshTable}
+                                    disabled={tableLoading}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 1rem',
+                                        background: 'var(--primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: 'var(--radius-md)',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        cursor: tableLoading ? 'not-allowed' : 'pointer',
+                                        opacity: tableLoading ? 0.6 : 1,
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <RefreshCw size={14} style={{ animation: tableLoading ? 'spin 1s linear infinite' : 'none' }} />
+                                    {tableLoading ? 'Loading...' : 'Refresh'}
+                                </button>
                             </div>
 
-                            {/* Fondos Recaudados */}
-                            <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                    <Wallet size={20} />
-                                    <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Fondos Recaudados</h3>
+                            {tableLoading ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                                    Loading orders...
                                 </div>
-                                <CircularProgress
-                                    value={fundsCollectedPercent}
-                                    size={120}
-                                    color="primary"
-                                />
-                                <p style={{ marginTop: '1rem', fontSize: '1.5rem', fontWeight: 700 }}>
-                                    ${analyticsStats?.revenue.total || 0}
-                                </p>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Año Fiscal Actual</p>
-                            </div>
-
-                            {/* Customer Orders Table */}
-                            <Card className="animate-fade-in" style={{ animationDelay: '0.2s', padding: '1rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                                    <Title style={{ fontSize: '0.875rem', margin: 0 }}>📋 Órdenes de Clientes</Title>
-                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                        {/* View All Orders Button */}
-                                        <button
+                            ) : recentAdminItems.length > 0 ? (
+                                <div className="recent-list">
+                                    {recentAdminItems.map((item) => (
+                                        <RecentItem
+                                            key={item.id}
+                                            name={item.name}
+                                            date={item.date}
+                                            size={item.size}
+                                            icon={item.icon}
+                                            iconColor={item.iconColor}
                                             onClick={() => navigate('/dashboard/orders')}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.35rem',
-                                                padding: '0.35rem 0.75rem',
-                                                background: 'var(--primary)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '6px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.target.style.transform = 'translateY(-1px)';
-                                                e.target.style.boxShadow = '0 2px 8px rgba(99, 102, 241, 0.3)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.target.style.transform = 'translateY(0)';
-                                                e.target.style.boxShadow = 'none';
-                                            }}
-                                        >
-                                            Ver todas
-                                            <ArrowRight size={12} />
-                                        </button>
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '3rem',
+                                    background: 'var(--bg-secondary)',
+                                    borderRadius: 'var(--radius-card)',
+                                    color: 'var(--text-secondary)'
+                                }}>
+                                    No recent orders
+                                </div>
+                            )}
+                        </div>
 
-                                        {/* Refresh Button - Icon Only */}
-                                        <button
-                                            onClick={refreshTable}
-                                            disabled={tableLoading}
-                                            title={tableLoading ? 'Cargando...' : 'Refrescar'}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                padding: '0.35rem',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                borderRadius: '6px',
-                                                color: 'var(--text-primary)',
-                                                cursor: tableLoading ? 'not-allowed' : 'pointer',
-                                                transition: 'all 0.2s',
-                                                opacity: tableLoading ? 0.6 : 1
-                                            }}
-                                            onMouseEnter={(e) => !tableLoading && (e.target.style.background = 'var(--glass-border)')}
-                                            onMouseLeave={(e) => e.target.style.background = 'transparent'}
-                                        >
-                                            <RefreshCw size={14} style={{ animation: tableLoading ? 'spin 1s linear infinite' : 'none' }} />
-                                        </button>
+                        {/* Quick Stats - Simplified */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                            gap: '1.5rem',
+                            marginTop: '2rem'
+                        }}>
+                            <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-card)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '12px',
+                                        background: '#10b981',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <CheckCircle size={24} color="white" />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Órdenes Aprobadas</h3>
+                                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            {approvedOrdersPercent.toFixed(0)}%
+                                        </p>
                                     </div>
                                 </div>
-                                <div style={{ overflowX: 'auto' }}>
-                                    {tableLoading ? (
-                                        // Skeleton Loader - Same structure as real table
-                                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {[...Array(5)].map((_, index) => (
-                                                    <tr
-                                                        key={index}
-                                                        style={{
-                                                            background: 'rgba(128, 128, 128, 0.1)',
-                                                            borderRadius: '12px'
-                                                        }}
-                                                    >
-                                                        <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
-                                                                <div className="skeleton-text" style={{ width: '60%', height: '14px' }}></div>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                                <div className="skeleton-text" style={{ width: '28px', height: '28px', borderRadius: '50%' }}></div>
-                                                                <div className="skeleton-text" style={{ width: '50%', height: '14px' }}></div>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                                                            <div className="skeleton-text" style={{ width: '70px', height: '22px', borderRadius: '12px' }}></div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    ) : (
-                                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Admin</th>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Usuario</th>
-                                                    <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Estado</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {ordersTable.map((order, index) => (
-                                                    <tr
-                                                        key={order.id}
-                                                        style={{
-                                                            background: order.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
-                                                                order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
-                                                                    'rgba(239, 68, 68, 0.1)',
-                                                            borderRadius: '12px',
-                                                            transition: 'all 0.2s'
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            e.currentTarget.style.transform = 'translateY(-2px)';
-                                                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            e.currentTarget.style.transform = 'translateY(0)';
-                                                            e.currentTarget.style.boxShadow = 'none';
-                                                        }}
-                                                    >
-                                                        <td style={{ padding: '0.5rem', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', fontSize: '0.875rem' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                                <UserAvatar
-                                                                    photoURL={order.profilePhoto}
-                                                                    name={order.profile}
-                                                                    size="xs"
-                                                                />
-                                                                <span>{order.profile}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', fontSize: '0.875rem' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                                <UserAvatar
-                                                                    photoURL={order.addressPhoto}
-                                                                    name={order.address}
-                                                                    size="xs"
-                                                                />
-                                                                <span>{order.address}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                                                            <span style={{
-                                                                padding: '0.25rem 0.75rem',
-                                                                borderRadius: '12px',
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 600,
-                                                                background: order.status === 'approved' ? '#10b981' :
-                                                                    order.status === 'pending' ? '#f59e0b' : '#ef4444',
-                                                                color: 'white'
-                                                            }}>
-                                                                {order.status === 'approved' ? 'Aprobado' :
-                                                                    order.status === 'pending' ? 'Pendiente' : 'Rechazado'}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
+                            </div>
+
+                            <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-card)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '12px',
+                                        background: '#5B9FED',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <Wallet size={24} color="white" />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Total Revenue</h3>
+                                        <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            ${analyticsStats?.revenue.total || 0}
+                                        </p>
+                                    </div>
                                 </div>
-                            </Card>
+                            </div>
                         </div>
                     </>
                 )}

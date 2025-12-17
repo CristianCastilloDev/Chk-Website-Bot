@@ -28,10 +28,11 @@
   --space-2xl: 3rem;
 
   /* Border Radius */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
   --radius-xl: 1.5rem;
+  --radius-card: 1.25rem;
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -47,11 +48,11 @@
 
 /* ===== DARK THEME (DEFAULT) ===== */
 [data-theme="dark"] {
-  /* Background Colors - Matching mockup */
-  --bg-primary: #1C1C28;
-  --bg-secondary: #2A2A3C;
-  --bg-tertiary: #363649;
-  --bg-elevated: #2A2A3C;
+  /* Background Colors - Minimalist Dark Design */
+  --bg-primary: #1A1D2E;
+  --bg-secondary: #22283A;
+  --bg-tertiary: #2C3142;
+  --bg-elevated: #22283A;
 
   /* Text Colors - Better contrast */
   --text-primary: #F9FAFB;
@@ -59,14 +60,21 @@
   --text-tertiary: #6B7280;
 
   /* Brand Colors */
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
+  --primary: #5B9FED;
+  --primary-hover: #7AB3F5;
   --secondary: #8b5cf6;
   --accent: #06b6d4;
   --accent-pink: #ec4899;
 
+  /* Icon Colors - Vibrant accents */
+  --icon-blue: #5B9FED;
+  --icon-orange: #F59E0B;
+  --icon-pink: #EC4899;
+  --icon-cyan: #06B6D4;
+  --icon-purple: #A78BFA;
+
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary: linear-gradient(135deg, #5B9FED 0%, #8b5cf6 100%);
   --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #ec4899 100%);
   --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
 
@@ -74,15 +82,15 @@
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --info: #3b82f6;
+  --info: #5B9FED;
 
   /* Glassmorphism - More subtle */
-  --glass-bg: rgba(42, 42, 60, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-bg: rgba(34, 40, 58, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 
   /* Overlay */
-  --overlay: rgba(28, 28, 40, 0.8);
+  --overlay: rgba(26, 29, 46, 0.85);
 }
 
 /* ===== LIGHT THEME ===== */
