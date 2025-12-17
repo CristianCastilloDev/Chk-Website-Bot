@@ -25,6 +25,7 @@ const Users = () => {
         activePlans: 0,
         expiredPlans: 0
     });
+    const [openMenuId, setOpenMenuId] = useState(null);
 
     useEffect(() => {
         loadUsers();
@@ -177,6 +178,19 @@ const Users = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedUser(null);
+    };
+
+    const toggleMenu = (userId) => {
+        setOpenMenuId(openMenuId === userId ? null : userId);
+    };
+
+    const handleMenuAction = (user, action) => {
+        setOpenMenuId(null);
+        if (action === 'details') {
+            handleViewDetails(user);
+        } else if (action === 'edit') {
+            handleEditUser(user);
+        }
     };
 
     if (loading) {
@@ -406,7 +420,8 @@ const Users = () => {
                                         )}
                                     </div>
                                     <div className="table-cell">
-                                        <div className="action-buttons">
+                                        <div className="action-buttons" style={{ position: 'relative' }}>
+                                            {/* Desktop buttons */}
                                             <button
                                                 className="detail-user-btn"
                                                 onClick={() => handleViewDetails(user)}
@@ -421,6 +436,95 @@ const Users = () => {
                                             >
                                                 <Edit2 size={16} />
                                             </button>
+
+                                            {/* Mobile menu button */}
+                                            <button
+                                                className="mobile-menu-btn"
+                                                onClick={() => toggleMenu(user.id)}
+                                                style={{
+                                                    display: 'none',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    background: 'var(--bg-tertiary)',
+                                                    border: '1px solid var(--glass-border)',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    color: 'var(--text-primary)',
+                                                    fontSize: '1.5rem',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    transition: 'all var(--transition-base)',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                ⋮
+                                            </button>
+
+                                            {/* Dropdown menu */}
+                                            {openMenuId === user.id && (
+                                                <div
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '100%',
+                                                        right: 0,
+                                                        marginTop: '0.5rem',
+                                                        background: 'var(--bg-secondary)',
+                                                        border: '1px solid var(--glass-border)',
+                                                        borderRadius: 'var(--radius-md)',
+                                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                                        zIndex: 1000,
+                                                        minWidth: '160px',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    <button
+                                                        onClick={() => handleMenuAction(user, 'details')}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '0.75rem 1rem',
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            color: 'var(--text-primary)',
+                                                            fontSize: '0.9rem',
+                                                            textAlign: 'left',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.75rem',
+                                                            transition: 'background var(--transition-fast)'
+                                                        }}
+                                                        onMouseEnter={(e) => e.target.style.background = 'var(--bg-tertiary)'}
+                                                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                    >
+                                                        <Info size={16} />
+                                                        Ver detalles
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleMenuAction(user, 'edit')}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '0.75rem 1rem',
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            borderTop: '1px solid var(--glass-border)',
+                                                            color: 'var(--text-primary)',
+                                                            fontSize: '0.9rem',
+                                                            textAlign: 'left',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.75rem',
+                                                            transition: 'background var(--transition-fast)'
+                                                        }}
+                                                        onMouseEnter={(e) => e.target.style.background = 'var(--bg-tertiary)'}
+                                                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                                    >
+                                                        <Edit2 size={16} />
+                                                        Editar usuario
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
