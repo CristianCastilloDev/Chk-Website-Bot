@@ -1,319 +1,318 @@
-rules_version = '2';
+  rules_version = '2';
 
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // ========== FUNCIONES HELPER ==========
-    
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isAdmin() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    function isDev() {
-      return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dev';
-    }
-    
-    function isAdminOrDev() {
-      return isAdmin() || isDev();
-    }
-
-    // ========== USUARIOS ==========
-    
-    match /users/{userId} {
-      allow read: if true;  // CRÍTICO para login
-      allow create: if request.auth.uid == userId;
-      allow update: if isOwner(userId) || isAdminOrDev();
-      allow delete: if isAdminOrDev();
-    }
-
-    // ========== GATES ==========
-    
-    match /gates/{gateId} {
-      allow read: if true;
-      allow create, update, delete: if isAdminOrDev();
-    }
-
-    // ========== ESTADÍSTICAS GLOBALES ==========
-    
-    match /stats/global {
-      allow read: if true;
-      allow write: if false;
-    }
-    
-    // ========== VENTAS ==========
-    
-    match /sales/{saleId} {
-      allow read: if isAdminOrDev();
-      allow write: if isAdminOrDev();
-    }
-    
-    // ========== TRANSACCIONES ==========
-    
-    match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdminOrDev());
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdminOrDev();
-    }
-
-    // ========== LIVES ==========
-    
-    match /lives/{liveId} {
-      allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdminOrDev());
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && 
-                               (resource.data.userId == request.auth.uid || isAdminOrDev());
-    }
-
-    // ========== BIN SEARCHES ==========
-    
-    match /bin_searches/{searchId} {
-      allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdminOrDev());
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && 
-                               resource.data.userId == request.auth.uid;
-    }
-
-    // ========== BIN CACHE ==========
-    
-    match /bin_cache/{binId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-    }
-
-    // ========== VALIDATION RESULTS ==========
-    
-    match /validation_results/{resultId} {
-      allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdminOrDev());
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAdminOrDev();
-    }
-
-    // ========== PLANES ==========
-    
-    match /plans/{planId} {
-      allow read: if true;
-      allow write: if isAdminOrDev();
-    }
-
-    // ========== SUSCRIPCIONES ==========
-    
-    match /subscriptions/{subscriptionId} {
-      allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdminOrDev());
-      allow write: if isAdminOrDev();
-    }
-
-    // ========== ANALYTICS - ÓRDENES ==========
-    
-    match /analytics_orders/{orderId} {
-      // Permitir lectura al Admin SDK (bot) y a admins/devs
-      allow read: if request.auth == null || isAdminOrDev();
+  service cloud.firestore {
+    match /databases/{database}/documents {
       
-      // Solo admins pueden crear órdenes
-      allow create: if isAdmin();
+      // ========== FUNCIONES HELPER ==========
       
-      // Admin SDK (bot) y devs pueden actualizar (aprobar/rechazar)
-      allow update: if request.auth == null || isDev();
+      function isAuthenticated() {
+        return request.auth != null;
+      }
       
-      // Solo devs pueden eliminar
-      allow delete: if isDev();
-    }
-    
-    // ========== ANALYTICS - ACTIVIDAD ==========
-    
-    match /analytics_activity/{activityId} {
-      // Solo admins y devs pueden leer
-      allow read: if isAdminOrDev();
+      function isOwner(userId) {
+        return isAuthenticated() && request.auth.uid == userId;
+      }
       
-      // Cualquier usuario autenticado puede crear su propia actividad
-      allow create: if isAuthenticated();
+      function isAdmin() {
+        return isAuthenticated() && 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      }
       
-      // Solo devs pueden actualizar o eliminar
-      allow update, delete: if isDev();
-    }
-    
-    // ========== ANALYTICS - SUSCRIPCIONES ==========
-    
-    match /analytics_subscriptions/{subscriptionId} {
-      // Solo admins y devs pueden leer
-      allow read: if isAdminOrDev();
+      function isDev() {
+        return isAuthenticated() && 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dev';
+      }
       
-      // Solo admins y devs pueden crear
-      allow create: if isAdminOrDev();
+      function isAdminOrDev() {
+        return isAdmin() || isDev();
+      }
+
+      // ========== USUARIOS ==========
       
-      // Solo devs pueden actualizar o eliminar
-      allow update, delete: if isDev();
-    }
+      match /users/{userId} {
+        allow read: if true;  // CRÍTICO para login
+        allow create: if request.auth.uid == userId;
+        allow update: if isOwner(userId) || isAdminOrDev();
+        allow delete: if isAdminOrDev();
+      }
 
-    // ========== NOTIFICACIONES ==========
-    
-    match /notifications/{notificationId} {
-      // Permitir lectura solo al usuario dueño de la notificación
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // ========== GATES ==========
       
-      // Permitir crear notificaciones solo a admins y devs
-      allow create: if isAdminOrDev();
+      match /gates/{gateId} {
+        allow read: if true;
+        allow create, update, delete: if isAdminOrDev();
+      }
+
+      // ========== ESTADÍSTICAS GLOBALES ==========
       
-      // Permitir actualizar (marcar como leída) solo al dueño
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      match /stats/global {
+        allow read: if true;
+        allow write: if false;
+      }
       
-      // Permitir eliminar solo al dueño de la notificación
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // ========== TELEGRAM INTEGRATION ==========
-    
-    match /telegram_users/{linkId} {
-      // Permitir lectura a usuarios autenticados para ver admins/devs en Pricing
-      // También permitir al Admin SDK (bot) y al dueño
-      allow read: if request.auth == null ||
-                     isAuthenticated();
+      // ========== VENTAS ==========
       
-      // Permitir crear link al usuario dueño o Admin SDK (bot)
-      allow create: if request.auth == null ||
-                       (isAuthenticated() && request.resource.data.firebaseUid == request.auth.uid) ||
-                       isAdminOrDev();
+      match /sales/{saleId} {
+        allow read: if isAdminOrDev();
+        allow write: if isAdminOrDev();
+      }
       
-      // Permitir actualizar solo al dueño, Admin SDK (bot) o admins/devs
-      allow update: if request.auth == null ||
-                       (isAuthenticated() && resource.data.firebaseUid == request.auth.uid) ||
-                       isAdminOrDev();
+      // ========== TRANSACCIONES ==========
       
-      // Solo admins/devs pueden eliminar
-      allow delete: if isAdminOrDev();
-    }
+      match /transactions/{transactionId} {
+        allow read: if isAuthenticated() && 
+                      (resource.data.userId == request.auth.uid || isAdminOrDev());
+        allow create: if isAuthenticated();
+        allow update, delete: if isAdminOrDev();
+      }
 
-
-    // ========== PASSWORD CHANGES ==========
-    
-    match /pending_password_changes/{changeId} {
-      // Permitir lectura solo al usuario dueño
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // ========== LIVES ==========
       
-      // Permitir crear solo al usuario dueño
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid;
+      match /lives/{liveId} {
+        allow read: if isAuthenticated() && 
+                      (resource.data.userId == request.auth.uid || isAdminOrDev());
+        allow create: if isAuthenticated() && 
+                        request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && 
+                                (resource.data.userId == request.auth.uid || isAdminOrDev());
+      }
+
+      // ========== BIN SEARCHES ==========
       
-      // Permitir actualizar solo al usuario dueño (para marcar como usado)
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      match /bin_searches/{searchId} {
+        allow read: if isAuthenticated() && 
+                      (resource.data.userId == request.auth.uid || isAdminOrDev());
+        allow create: if isAuthenticated() && 
+                        request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && 
+                                resource.data.userId == request.auth.uid;
+      }
+
+      // ========== BIN CACHE ==========
       
-      // Permitir eliminar solo al usuario dueño o devs
-      allow delete: if isAuthenticated() && 
-                       (resource.data.userId == request.auth.uid || isDev());
-    }
+      match /bin_cache/{binId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
 
-    // ========== PENDING REGISTRATIONS ==========
-
-    match /pending_registrations/{regId} {
-      // Permitir crear sin autenticación (registro público)
-      allow create: if true;
-
-      // Permitir leer solo al Admin SDK (bot)
-      allow read: if request.auth == null;
-
-      // Permitir actualizar solo al Admin SDK (bot)
-      allow update: if request.auth == null;
-
-      // Permitir eliminar solo al Admin SDK (bot) para limpieza
-      allow delete: if request.auth == null;
-    }
-
-    // ========== PENDING PASSWORD RESETS ==========
-
-    match /pending_password_resets/{resetId} {
-      // Permitir crear sin autenticación (recuperación pública)
-      allow create: if true;
-
-      // Permitir leer solo al Admin SDK (bot)
-      allow read: if request.auth == null;
-
-      // Permitir actualizar solo al Admin SDK (bot)
-      allow update: if request.auth == null;
-
-      // Permitir eliminar solo al Admin SDK (bot) para limpieza
-      allow delete: if request.auth == null;
-    }
-
-    // ========== PENDING PASSWORD UPDATES ==========
-
-    match /pending_password_updates/{updateId} {
-      // Permitir crear sin autenticación (desde página de recuperación)
-      allow create: if true;
-
-      // Permitir leer solo al Admin SDK (bot)
-      allow read: if request.auth == null;
-
-      // Permitir actualizar solo al Admin SDK (bot)
-      allow update: if request.auth == null;
-
-      // Permitir eliminar solo al Admin SDK (bot)
-      allow delete: if request.auth == null;
-    }
-
-    // ========== PURCHASE ORDERS (NEW ORDER SYSTEM) ==========
-    
-    match /purchase_orders/{orderId} {
-      // Admins y devs pueden leer todas las órdenes
-      // Admin SDK (bot) también puede leer
-      allow read: if request.auth == null || isAdminOrDev();
+      // ========== VALIDATION RESULTS ==========
       
-      // Solo el bot puede crear órdenes (desde backend)
-      allow create: if request.auth == null;
-      
-      // Admins, devs y bot pueden actualizar (aprobar/rechazar)
-      allow update: if request.auth == null || isAdminOrDev();
-      
-      // Solo devs pueden eliminar
-      allow delete: if isDev();
-    }
+      match /validation_results/{resultId} {
+        allow read: if isAuthenticated() && 
+                      (resource.data.userId == request.auth.uid || isAdminOrDev());
+        allow create: if isAuthenticated() && 
+                        request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAdminOrDev();
+      }
 
-    // ========== EARNINGS (COMMISSION TRACKING) ==========
-    
-    match /earnings/{userId} {
-      // Admins y devs pueden leer sus propias ganancias
-      // Bot puede leer todas
-      allow read: if request.auth == null || 
-                     isAdminOrDev();
+      // ========== PLANES ==========
       
-      // Solo el bot puede crear/actualizar earnings
-      allow create, update: if request.auth == null;
-      
-      // Solo devs pueden eliminar
-      allow delete: if isDev();
-    }
+      match /plans/{planId} {
+        allow read: if true;
+        allow write: if isAdminOrDev();
+      }
 
-    // ========== CONFIG (BANK ACCOUNT, ETC) ==========
-    
-    match /config/{configId} {
-      // Admins y devs pueden leer configuración
-      // Bot también puede leer
-      allow read: if request.auth == null || isAdminOrDev();
+      // ========== SUSCRIPCIONES ==========
       
-      // Solo admins, devs y bot pueden escribir
-      allow write: if request.auth == null || isAdminOrDev();
-    }
+      match /subscriptions/{subscriptionId} {
+        allow read: if isAuthenticated() && 
+                      (resource.data.userId == request.auth.uid || isAdminOrDev());
+        allow write: if isAdminOrDev();
+      }
 
-    // ========== CATCH-ALL (DENEGAR TODO LO DEMÁS) ==========
-    
-    match /{document=**} {
-      allow read, write: if false;
+      // ========== ANALYTICS - ÓRDENES ==========
+      
+      match /analytics_orders/{orderId} {
+        // Permitir lectura al Admin SDK (bot) y a admins/devs
+        allow read: if request.auth == null || isAdminOrDev();
+        
+        // Solo admins pueden crear órdenes
+        allow create: if isAdmin();
+        
+        // Admin SDK (bot) y devs pueden actualizar (aprobar/rechazar)
+        allow update: if request.auth == null || isDev();
+        
+        // Solo devs pueden eliminar
+        allow delete: if isDev();
+      }
+      
+      // ========== ANALYTICS - ACTIVIDAD ==========
+      
+      match /analytics_activity/{activityId} {
+        // Solo admins y devs pueden leer
+        allow read: if isAdminOrDev();
+        
+        // Cualquier usuario autenticado puede crear su propia actividad
+        allow create: if isAuthenticated();
+        
+        // Solo devs pueden actualizar o eliminar
+        allow update, delete: if isDev();
+      }
+      
+      // ========== ANALYTICS - SUSCRIPCIONES ==========
+      
+      match /analytics_subscriptions/{subscriptionId} {
+        // Solo admins y devs pueden leer
+        allow read: if isAdminOrDev();
+        
+        // Solo admins y devs pueden crear
+        allow create: if isAdminOrDev();
+        
+        // Solo devs pueden actualizar o eliminar
+        allow update, delete: if isDev();
+      }
+
+      // ========== NOTIFICACIONES ==========
+      
+      match /notifications/{notificationId} {
+        // Permitir lectura solo al usuario dueño de la notificación
+        allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        
+        // Permitir crear notificaciones solo a admins y devs
+        allow create: if isAdminOrDev();
+        
+        // Permitir actualizar (marcar como leída) solo al dueño
+        allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        
+        // Permitir eliminar solo al dueño de la notificación
+        allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      }
+
+      // ========== TELEGRAM INTEGRATION ==========
+      
+      match /telegram_users/{linkId} {
+        // Permitir lectura a usuarios autenticados para ver admins/devs en Pricing
+        // También permitir al Admin SDK (bot) y al dueño
+        allow read: if request.auth == null ||
+                      isAuthenticated();
+        
+        // Permitir crear link al usuario dueño o Admin SDK (bot)
+        allow create: if request.auth == null ||
+                        (isAuthenticated() && request.resource.data.firebaseUid == request.auth.uid) ||
+                        isAdminOrDev();
+        
+        // Permitir actualizar solo al dueño, Admin SDK (bot) o admins/devs
+        allow update: if request.auth == null ||
+                        (isAuthenticated() && resource.data.firebaseUid == request.auth.uid) ||
+                        isAdminOrDev();
+        
+        // Solo admins/devs pueden eliminar
+        allow delete: if isAdminOrDev();
+      }
+
+
+      // ========== PASSWORD CHANGES ==========
+      
+      match /pending_password_changes/{changeId} {
+        // Permitir lectura solo al usuario dueño
+        allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        
+        // Permitir crear solo al usuario dueño
+        allow create: if isAuthenticated() && 
+                        request.resource.data.userId == request.auth.uid;
+        
+        // Permitir actualizar solo al usuario dueño (para marcar como usado)
+        allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        
+        // Permitir eliminar solo al usuario dueño o devs
+        allow delete: if isAuthenticated() && 
+                        (resource.data.userId == request.auth.uid || isDev());
+      }
+
+      // ========== PENDING REGISTRATIONS ==========
+
+      match /pending_registrations/{regId} {
+        // Permitir crear sin autenticación (registro público)
+        allow create: if true;
+
+        // Permitir leer solo al Admin SDK (bot)
+        allow read: if request.auth == null;
+
+        // Permitir actualizar solo al Admin SDK (bot)
+        allow update: if request.auth == null;
+
+        // Permitir eliminar solo al Admin SDK (bot) para limpieza
+        allow delete: if request.auth == null;
+      }
+
+      // ========== PENDING PASSWORD RESETS ==========
+
+      match /pending_password_resets/{resetId} {
+        // Permitir crear sin autenticación (recuperación pública)
+        allow create: if true;
+
+        // Permitir leer solo al Admin SDK (bot)
+        allow read: if request.auth == null;
+
+        // Permitir actualizar solo al Admin SDK (bot)
+        allow update: if request.auth == null;
+
+        // Permitir eliminar solo al Admin SDK (bot) para limpieza
+        allow delete: if request.auth == null;
+      }
+
+      // ========== PENDING PASSWORD UPDATES ==========
+
+      match /pending_password_updates/{updateId} {
+        // Permitir crear sin autenticación (desde página de recuperación)
+        allow create: if true;
+
+        // Permitir leer solo al Admin SDK (bot)
+        allow read: if request.auth == null;
+
+        // Permitir actualizar solo al Admin SDK (bot)
+        allow update: if request.auth == null;
+
+        // Permitir eliminar solo al Admin SDK (bot)
+        allow delete: if request.auth == null;
+      }
+
+      // ========== PURCHASE ORDERS (NEW ORDER SYSTEM) ==========
+      
+      match /purchase_orders/{orderId} {
+        // Admins y devs pueden leer todas las órdenes
+        // Admin SDK (bot) también puede leer
+        allow read: if request.auth == null || isAdminOrDev();
+        
+        // Solo el bot puede crear órdenes (desde backend)
+        allow create: if request.auth == null;
+        
+        // Admins, devs y bot pueden actualizar (aprobar/rechazar)
+        allow update: if request.auth == null || isAdminOrDev();
+        
+        // Solo devs pueden eliminar
+        allow delete: if isDev();
+      }
+
+      // ========== EARNINGS (COMMISSION TRACKING) ==========
+      
+      match /earnings/{userId} {
+        // All authenticated users can read earnings documents
+        // Bot can read without auth
+        allow read: if request.auth != null || request.auth == null;
+        
+        // Solo el bot puede crear/actualizar earnings
+        allow create, update: if request.auth == null;
+        
+        // Solo devs pueden eliminar
+        allow delete: if isDev();
+      }
+
+      // ========== CONFIG (BANK ACCOUNT, ETC) ==========
+      
+      match /config/{configId} {
+        // Admins y devs pueden leer configuración
+        // Bot también puede leer
+        allow read: if request.auth == null || isAdminOrDev();
+        
+        // Solo admins, devs y bot pueden escribir
+        allow write: if request.auth == null || isAdminOrDev();
+      }
+
+      // ========== CATCH-ALL (DENEGAR TODO LO DEMÁS) ==========
+      
+      match /{document=**} {
+        allow read, write: if false;
+      }
     }
   }
-}

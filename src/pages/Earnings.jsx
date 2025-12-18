@@ -22,20 +22,28 @@ const Earnings = () => {
 
     const loadEarnings = async () => {
         try {
+            console.log('🔄 Starting loadEarnings...');
             setLoading(true);
 
-            if (!user?.uid) {
+            if (!user?.id) {
+                console.log('❌ No user ID found');
                 setLoading(false);
                 return;
             }
 
+            console.log('✅ User ID:', user.id);
+
             // First, get the Telegram chatId from telegram_users collection
             const telegramUsersRef = collection(db, 'telegram_users');
-            const telegramQuery = query(telegramUsersRef, where('firebaseUid', '==', user.uid));
+            const telegramQuery = query(telegramUsersRef, where('firebaseUid', '==', user.id));
+
+            console.log('🔍 Querying telegram_users for firebaseUid:', user.id);
             const telegramSnapshot = await getDocs(telegramQuery);
 
+            console.log('📦 telegram_users docs found:', telegramSnapshot.size);
+
             if (telegramSnapshot.empty) {
-                console.log('No telegram_users entry found for user:', user.uid);
+                console.log('❌ No telegram_users entry found for user:', user.id);
                 setEarnings({
                     totals: {
                         totalSales: 0,
@@ -50,16 +58,20 @@ const Earnings = () => {
             }
 
             const telegramData = telegramSnapshot.docs[0].data();
-            const chatId = telegramData.chatId;
+            const chatId = telegramData.chatId.toString(); // Convert to string for Firestore
 
-            console.log('Loading earnings for chatId:', chatId);
+            console.log('✅ Found chatId:', chatId);
+            console.log('📊 Loading earnings for chatId:', chatId);
 
             // Get earnings document for this user using their chatId
             const earningsRef = doc(db, 'earnings', chatId);
             const earningsDoc = await getDoc(earningsRef);
 
+            console.log('📄 Earnings doc exists:', earningsDoc.exists());
+
             if (earningsDoc.exists()) {
                 const data = earningsDoc.data();
+                console.log('💰 Earnings data:', data);
                 setEarnings(data);
 
                 // Process monthly data for chart
@@ -73,11 +85,13 @@ const Earnings = () => {
                     .sort((a, b) => a.month.localeCompare(b.month))
                     .slice(-6); // Last 6 months
 
+                console.log('📈 Monthly data:', monthlyArray);
                 setMonthlyData(monthlyArray);
 
                 // Get plan breakdown from purchase_orders
                 await loadPlanBreakdown(chatId);
             } else {
+                console.log('⚠️ No earnings document found for chatId:', chatId);
                 setEarnings({
                     totals: {
                         totalSales: 0,
@@ -89,7 +103,7 @@ const Earnings = () => {
                 });
             }
         } catch (error) {
-            console.error('Error loading earnings:', error);
+            console.error('❌ Error loading earnings:', error);
         } finally {
             setLoading(false);
         }
