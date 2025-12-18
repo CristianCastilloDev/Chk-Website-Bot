@@ -5,7 +5,7 @@ import { Card, Title, AreaChart, DonutChart } from '@tremor/react';
 import DashboardLayout from '../components/DashboardLayout';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useAuth } from '../context/AuthContext';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import './Pages.css';
 
@@ -24,13 +24,38 @@ const Earnings = () => {
         try {
             setLoading(true);
 
-            if (!user?.telegramId) {
+            if (!user?.uid) {
                 setLoading(false);
                 return;
             }
 
-            // Get earnings document for this user
-            const earningsRef = doc(db, 'earnings', user.telegramId);
+            // First, get the Telegram chatId from telegram_users collection
+            const telegramUsersRef = collection(db, 'telegram_users');
+            const telegramQuery = query(telegramUsersRef, where('firebaseUid', '==', user.uid));
+            const telegramSnapshot = await getDocs(telegramQuery);
+
+            if (telegramSnapshot.empty) {
+                console.log('No telegram_users entry found for user:', user.uid);
+                setEarnings({
+                    totals: {
+                        totalSales: 0,
+                        totalAmount: 0,
+                        totalCommissions: 0,
+                        paidCommissions: 0,
+                        pendingCommissions: 0
+                    }
+                });
+                setLoading(false);
+                return;
+            }
+
+            const telegramData = telegramSnapshot.docs[0].data();
+            const chatId = telegramData.chatId;
+
+            console.log('Loading earnings for chatId:', chatId);
+
+            // Get earnings document for this user using their chatId
+            const earningsRef = doc(db, 'earnings', chatId);
             const earningsDoc = await getDoc(earningsRef);
 
             if (earningsDoc.exists()) {
@@ -51,7 +76,7 @@ const Earnings = () => {
                 setMonthlyData(monthlyArray);
 
                 // Get plan breakdown from purchase_orders
-                await loadPlanBreakdown();
+                await loadPlanBreakdown(chatId);
             } else {
                 setEarnings({
                     totals: {
@@ -70,7 +95,7 @@ const Earnings = () => {
         }
     };
 
-    const loadPlanBreakdown = async () => {
+    const loadPlanBreakdown = async (chatId) => {
         try {
             const ordersRef = collection(db, 'purchase_orders');
             const snapshot = await getDocs(ordersRef);
@@ -79,7 +104,7 @@ const Earnings = () => {
 
             snapshot.docs.forEach(doc => {
                 const order = doc.data();
-                if (order.adminId === user.telegramId && order.status === 'approved') {
+                if (order.adminId === chatId && order.status === 'approved') {
                     const planName = order.plan?.name || 'Desconocido';
                     planCounts[planName] = (planCounts[planName] || 0) + 1;
                 }

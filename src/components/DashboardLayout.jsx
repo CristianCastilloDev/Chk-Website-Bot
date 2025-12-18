@@ -111,7 +111,15 @@ const DashboardLayout = ({ children, currentPage }) => {
             path: '/dashboard/orders',
             adminOnly: true
         },
-        // 8. Admin Section - Gate Status
+        // 8. Earnings (for admins and devs)
+        {
+            id: 'earnings',
+            label: 'Ganancias',
+            icon: DollarSign,
+            path: '/dashboard/earnings',
+            showForRoles: ['admin', 'dev']
+        },
+        // 9. Admin Section - Gate Status
         {
             id: 'gate-status',
             label: 'Status Gates',
