@@ -1,32 +1,31 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Home,
+    LayoutDashboard,
     BarChart3,
     Users,
-    ShoppingCart,
-    CreditCard,
     Settings,
     LogOut,
     Menu,
     X,
-    Bell,
+    Sun,
+    Moon,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
     DollarSign,
     Shield,
     UserCircle,
+    CreditCard,
     Lock,
     Wrench,
+    ShoppingCart,
     Heart,
     Database,
     Search,
     Mail,
     MessageSquare,
-    MapPin,
-    Sun,
-    Moon
+    MapPin
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -49,7 +48,7 @@ const DashboardLayout = ({ children, currentPage }) => {
         {
             id: 'dashboard',
             label: 'Dashboard',
-            icon: Home,
+            icon: LayoutDashboard,
             path: '/dashboard'
         },
         // 2. BIN Analytics (no submenu, top-level with badge)
@@ -111,14 +110,6 @@ const DashboardLayout = ({ children, currentPage }) => {
             icon: ShoppingCart,
             path: '/dashboard/orders',
             adminOnly: true
-        },
-        // 8. Earnings (for admins and devs)
-        {
-            id: 'earnings',
-            label: 'Ganancias',
-            icon: DollarSign,
-            path: '/dashboard/earnings',
-            showForRoles: ['admin', 'dev'] // Show for both admin and dev
         },
         // 8. Admin Section - Gate Status
         {
@@ -226,10 +217,10 @@ const DashboardLayout = ({ children, currentPage }) => {
 
             {/* Sidebar */}
             {(sidebarOpen || window.innerWidth > 768) && (
-                <aside className={`sidebar glass ${sidebarCollapsed ? 'collapsed' : ''} `}>
+                <aside className={`sidebar glass ${sidebarCollapsed ? 'collapsed' : ''}`}>
                     <div className="sidebar-header">
                         <div className="logo">
-                            <Home size={28} />
+                            <LayoutDashboard size={28} />
                             {!sidebarCollapsed && <span>Dashboard</span>}
                         </div>
                         <button
@@ -255,7 +246,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                                         // Parent menu with submenu
                                         <div className="nav-item-group">
                                             <button
-                                                className={`nav - item ${expandedMenus[item.id] ? 'expanded' : ''} `}
+                                                className={`nav-item ${expandedMenus[item.id] ? 'expanded' : ''}`}
                                                 onClick={() => toggleSubmenu(item.id)}
                                             >
                                                 <div className="nav-item-content">
@@ -277,7 +268,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                                                     {item.submenu.filter(shouldShowMenuItem).map((subItem) => (
                                                         <button
                                                             key={subItem.id}
-                                                            className={`submenu - item ${isPathActive(subItem.path) ? 'active' : ''} `}
+                                                            className={`submenu-item ${isPathActive(subItem.path) ? 'active' : ''}`}
                                                             onClick={() => handleNavigation(subItem.path)}
                                                         >
                                                             <subItem.icon size={16} />
@@ -304,7 +295,7 @@ const DashboardLayout = ({ children, currentPage }) => {
                                     ) : (
                                         // Regular menu item
                                         <button
-                                            className={`nav - item ${isPathActive(item.path) ? 'active' : ''} `}
+                                            className={`nav-item ${isPathActive(item.path) ? 'active' : ''}`}
                                             onClick={() => handleNavigation(item.path)}
                                         >
                                             <div className="nav-item-content">
