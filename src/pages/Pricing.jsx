@@ -12,6 +12,9 @@ const Pricing = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Reset state on mount
+        setLoading(true);
+        setTeamMembers([]);
         loadTeamMembers();
     }, []);
 
@@ -65,8 +68,8 @@ const Pricing = () => {
 
     const cardVariants = {
         hidden: { opacity: 0, y: 30 },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             y: 0,
             transition: { type: 'spring', stiffness: 80 }
         }
@@ -114,11 +117,11 @@ const Pricing = () => {
                 >
                     <motion.div
                         className="header-icon-modern"
-                        animate={{ 
+                        animate={{
                             rotate: [0, 5, -5, 0],
                             scale: [1, 1.05, 1]
                         }}
-                        transition={{ 
+                        transition={{
                             duration: 3,
                             repeat: Infinity,
                             repeatDelay: 2

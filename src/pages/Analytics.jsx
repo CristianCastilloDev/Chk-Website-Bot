@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    ShoppingCart, 
-    CheckCircle, 
-    Users, 
+import {
+    ShoppingCart,
+    CheckCircle,
+    Users,
     CreditCard,
     DollarSign,
     TrendingUp,
@@ -15,11 +15,11 @@ import DashboardLayout from '../components/DashboardLayout';
 import MetricCard from '../components/MetricCard';
 import DateRangePicker from '../components/DateRangePicker';
 import CircularProgress from '../components/CircularProgress';
-import { 
-    getAnalyticsStats, 
-    getSalesDynamics, 
+import {
+    getAnalyticsStats,
+    getSalesDynamics,
     getUserActivity,
-    getCustomerOrders 
+    getCustomerOrders
 } from '../services/db';
 import './Pages.css';
 
@@ -38,7 +38,7 @@ const Analytics = () => {
     const loadAnalyticsData = async () => {
         try {
             setLoading(true);
-            
+
             // Cargar todas las estadísticas en paralelo
             const [statsData, sales, activity, orders] = await Promise.all([
                 getAnalyticsStats(dateRange),
@@ -97,9 +97,9 @@ const Analytics = () => {
                 transition={{ duration: 0.5 }}
             >
                 {/* Header */}
-                <div className="page-header" style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                <div className="page-header" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     marginBottom: '2rem',
                     flexWrap: 'wrap',
@@ -109,96 +109,83 @@ const Analytics = () => {
                         <h1>Analytics</h1>
                         <p>Dashboard de métricas y estadísticas</p>
                     </div>
-                    <DateRangePicker 
+                    <DateRangePicker
                         value={dateRange}
                         onChange={handleDateRangeChange}
                     />
                 </div>
 
                 {/* Metrics Grid - Top Row */}
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                     gap: '1.5rem',
                     marginBottom: '2rem'
                 }}>
                     <MetricCard
-                        icon={<ShoppingCart />}
-                        title="Órdenes"
+                        icon={ShoppingCart}
+                        title="ÓRDENES"
                         value={stats?.orders.total || 0}
                         comparison={stats?.orders.comparison}
                         subtitle="Total de órdenes"
+                        iconBg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                     />
-                    
+
                     <MetricCard
-                        icon={<CheckCircle />}
-                        title="Aprobadas"
+                        icon={CheckCircle}
+                        title="APROBADAS"
                         value={stats?.orders.approved || 0}
+                        comparison={stats?.orders.comparison}
                         subtitle="Órdenes aprobadas"
+                        iconBg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
                     />
-                    
+
                     <MetricCard
-                        icon={<Users />}
-                        title="Usuarios"
-                        value={stats?.users.total || 0}
+                        icon={Users}
+                        title="USUARIOS"
+                        value={stats?.users.active || 0}
                         subtitle="Usuarios activos"
-                        chart={
-                            <DonutChart
-                                data={usersChartData}
-                                category="value"
-                                index="name"
-                                colors={['emerald', 'cyan', 'gray']}
-                                showLabel={false}
-                                className="h-24"
-                            />
-                        }
+                        iconBg="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
                     />
-                    
+
                     <MetricCard
-                        icon={<CreditCard />}
-                        title="Suscripciones"
+                        icon={CreditCard}
+                        title="SUSCRIPCIONES"
                         value={stats?.subscriptions.total || 0}
                         subtitle="Total de suscripciones"
-                        chart={
-                            <DonutChart
-                                data={subsChartData}
-                                category="value"
-                                index="name"
-                                colors={['violet', 'amber']}
-                                showLabel={false}
-                                className="h-24"
-                            />
-                        }
+                        iconBg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
                     />
                 </div>
 
                 {/* Metrics Grid - Second Row */}
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '1.5rem',
                     marginBottom: '2rem'
                 }}>
                     <MetricCard
-                        icon={<DollarSign />}
-                        title="Total del Mes"
+                        icon={DollarSign}
+                        title="TOTAL DEL MES"
                         value={`$${stats?.revenue.total || 0}`}
                         comparison={stats?.revenue.comparison}
                         subtitle="Ingresos totales"
+                        iconBg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
                     />
-                    
+
                     <MetricCard
-                        icon={<TrendingUp />}
-                        title="Ingresos"
+                        icon={TrendingUp}
+                        title="INGRESOS"
                         value={`$${stats?.revenue.total || 0}`}
                         comparison={stats?.revenue.comparison}
                         subtitle="Comparado con mes anterior"
+                        iconBg="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"
                     />
                 </div>
 
                 {/* Charts Section */}
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
                     gap: '1.5rem',
                     marginBottom: '2rem'
@@ -234,8 +221,8 @@ const Analytics = () => {
                 </div>
 
                 {/* Progress Cards */}
-                <div style={{ 
-                    display: 'grid', 
+                <div style={{
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                     gap: '1.5rem',
                     marginBottom: '2rem'
@@ -245,7 +232,7 @@ const Analytics = () => {
                             <FileText size={20} />
                             <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Facturas Pagadas</h3>
                         </div>
-                        <CircularProgress 
+                        <CircularProgress
                             value={paidInvoicesPercent}
                             size={120}
                             color="success"
@@ -261,7 +248,7 @@ const Analytics = () => {
                             <Wallet size={20} />
                             <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>Fondos Recaudados</h3>
                         </div>
-                        <CircularProgress 
+                        <CircularProgress
                             value={fundsCollectedPercent}
                             size={120}
                             color="primary"
@@ -289,13 +276,13 @@ const Analytics = () => {
                             </thead>
                             <tbody>
                                 {ordersTable.map((order, index) => (
-                                    <tr 
+                                    <tr
                                         key={order.id}
-                                        style={{ 
+                                        style={{
                                             borderBottom: '1px solid var(--glass-border)',
                                             background: order.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' :
-                                                       order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
-                                                       'rgba(239, 68, 68, 0.1)'
+                                                order.status === 'pending' ? 'rgba(251, 191, 36, 0.1)' :
+                                                    'rgba(239, 68, 68, 0.1)'
                                         }}
                                     >
                                         <td style={{ padding: '0.75rem' }}>{order.profile}</td>
@@ -308,11 +295,11 @@ const Analytics = () => {
                                                 fontSize: '0.75rem',
                                                 fontWeight: 600,
                                                 background: order.status === 'approved' ? '#10b981' :
-                                                           order.status === 'pending' ? '#f59e0b' : '#ef4444',
+                                                    order.status === 'pending' ? '#f59e0b' : '#ef4444',
                                                 color: 'white'
                                             }}>
                                                 {order.status === 'approved' ? 'Aprobado' :
-                                                 order.status === 'pending' ? 'Pendiente' : 'Rechazado'}
+                                                    order.status === 'pending' ? 'Pendiente' : 'Rechazado'}
                                             </span>
                                         </td>
                                         <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600 }}>{order.price}</td>

@@ -29,10 +29,10 @@ const Register = () => {
             if (data.status === 'approved') {
                 setShowConfirmModal(false);
                 setIsLoading(false);
-                navigate('/', { 
-                    state: { 
-                        message: '¡Cuenta creada exitosamente! Inicia sesión con tus credenciales.' 
-                    } 
+                navigate('/', {
+                    state: {
+                        message: '¡Cuenta creada exitosamente! Inicia sesión con tus credenciales.'
+                    }
                 });
             } else if (data.status === 'rejected') {
                 setShowConfirmModal(false);
@@ -87,6 +87,7 @@ const Register = () => {
                 password: password, // Will be hashed by bot
                 telegramId: telegramId,
                 status: 'pending',
+                messageSent: false, // Bot will set to true when message is sent
                 createdAt: new Date(),
                 expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
             });
@@ -260,9 +261,9 @@ const Register = () => {
                                 Por favor, confirma la creación de tu cuenta.
                             </p>
 
-                            <div style={{ 
-                                background: 'rgba(255,255,255,0.05)', 
-                                padding: '1rem', 
+                            <div style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                padding: '1rem',
                                 borderRadius: '0.5rem',
                                 marginBottom: '1.5rem'
                             }}>

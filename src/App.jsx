@@ -30,6 +30,7 @@ const FakeAddress = lazy(() => import('./pages/FakeAddress'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const Orders = lazy(() => import('./pages/Orders'));
+const Earnings = lazy(() => import('./pages/Earnings'));
 
 
 function App() {
@@ -87,6 +88,12 @@ function App() {
                 <AdminRoute>
                   <Orders />
                 </AdminRoute>
+              } />
+
+              <Route path="/dashboard/earnings/*" element={
+                <ProtectedRoute>
+                  <Earnings />
+                </ProtectedRoute>
               } />
 
               <Route path="/dashboard/gates/*" element={

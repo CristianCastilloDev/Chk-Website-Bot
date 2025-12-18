@@ -17,7 +17,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
-import { collection, getDocs, updateDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, getDoc, updateDoc, doc, addDoc, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import UserAvatar from '../components/UserAvatar';
 import './Pages.css';
@@ -58,10 +58,11 @@ const Orders = () => {
             // Delay de 2 segundos para mostrar la animación del skeleton
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            const ordersRef = collection(db, 'analytics_orders');
-            const snapshot = await getDocs(ordersRef);
+            // Load analytics_orders (old system)
+            const analyticsOrdersRef = collection(db, 'analytics_orders');
+            const analyticsSnapshot = await getDocs(analyticsOrdersRef);
 
-            const ordersData = await Promise.all(snapshot.docs.map(async (orderDoc) => {
+            const analyticsOrdersData = await Promise.all(analyticsSnapshot.docs.map(async (orderDoc) => {
                 const orderData = orderDoc.data();
                 let adminPhoto = null;
                 let userPhoto = null;
@@ -97,6 +98,7 @@ const Orders = () => {
                 return {
                     id: orderDoc.id,
                     ...orderData,
+                    orderType: 'analytics', // Mark as analytics order
                     adminPhoto,
                     userPhoto,
                     createdAt: orderData.createdAt?.toDate(),
@@ -105,10 +107,37 @@ const Orders = () => {
                 };
             }));
 
-            // Ordenar por fecha (más recientes primero)
-            ordersData.sort((a, b) => b.createdAt - a.createdAt);
+            // Load purchase_orders (new system)
+            const purchaseOrdersRef = collection(db, 'purchase_orders');
+            const purchaseSnapshot = await getDocs(purchaseOrdersRef);
 
-            setOrders(ordersData);
+            const purchaseOrdersData = await Promise.all(purchaseSnapshot.docs.map(async (orderDoc) => {
+                const orderData = orderDoc.data();
+
+                return {
+                    id: orderDoc.id,
+                    ...orderData,
+                    orderType: 'purchase', // Mark as purchase order
+                    // Map purchase order fields to match analytics structure
+                    targetUser: orderData.clientUsername,
+                    createdBy: orderData.adminUsername || 'Pendiente',
+                    description: `${orderData.plan?.name} - $${orderData.plan?.price} ${orderData.plan?.currency}`,
+                    amount: orderData.plan?.type === 'credits' ? orderData.plan?.credits : orderData.plan?.duration,
+                    price: orderData.plan?.price,
+                    type: orderData.plan?.type === 'credits' ? 'credits' : 'plan',
+                    createdAt: orderData.timestamps?.created?.toDate(),
+                    approvedAt: orderData.timestamps?.approved?.toDate(),
+                    rejectedAt: orderData.timestamps?.rejected?.toDate()
+                };
+            }));
+
+            // Combine both arrays
+            const allOrders = [...analyticsOrdersData, ...purchaseOrdersData];
+
+            // Ordenar por fecha (más recientes primero)
+            allOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            setOrders(allOrders);
         } catch (error) {
             console.error('Error loading orders:', error);
         } finally {
@@ -146,63 +175,189 @@ const Orders = () => {
                 return;
             }
 
-            // Buscar al usuario por email
-            const usersRef = collection(db, 'users');
-            const usersSnapshot = await getDocs(usersRef);
-            const targetUser = usersSnapshot.docs.find(doc => doc.data().email === order.targetUserEmail);
+            // Handle based on order type
+            if (order.orderType === 'purchase') {
+                // Purchase order - check current status
+                const orderRef = doc(db, 'purchase_orders', orderId);
+                const orderSnap = await getDoc(orderRef);
 
-            if (!targetUser) {
-                showWarning(`Usuario ${order.targetUser} no encontrado`);
-                return;
-            }
-
-            const userId = targetUser.id;
-            const userData = targetUser.data();
-
-            // Aplicar cambios según el tipo de orden
-            if (order.type === 'credits') {
-                // Agregar créditos
-                const currentCredits = userData.credits || 0;
-                const newCredits = currentCredits + order.amount;
-
-                await updateDoc(doc(db, 'users', userId), {
-                    credits: newCredits
-                });
-
-                // console.log(`✅ ${order.amount} créditos agregados a ${order.targetUser}`);
-            } else if (order.type === 'plan') {
-                // Agregar días al plan
-                const now = new Date();
-                let newExpirationDate;
-
-                if (userData.planExpiresAt && userData.planExpiresAt.toDate() > now) {
-                    // Si tiene plan activo, sumar días a la fecha actual
-                    newExpirationDate = new Date(userData.planExpiresAt.toDate());
-                    newExpirationDate.setDate(newExpirationDate.getDate() + order.amount);
-                } else {
-                    // Si no tiene plan o está expirado, empezar desde hoy
-                    newExpirationDate = new Date();
-                    newExpirationDate.setDate(newExpirationDate.getDate() + order.amount);
+                if (!orderSnap.exists()) {
+                    showWarning('Orden no encontrada');
+                    return;
                 }
 
-                await updateDoc(doc(db, 'users', userId), {
-                    planExpiresAt: newExpirationDate
+                const orderData = orderSnap.data();
+                const currentStatus = orderData.status;
+
+                if (currentStatus === 'pending') {
+                    // Just accept the order, don't apply plan yet
+                    await updateDoc(orderRef, {
+                        status: 'accepted',
+                        adminId: user?.telegramId || user?.uid,
+                        adminUsername: user?.name || user?.email,
+                        'timestamps.accepted': new Date()
+                    });
+
+                    showSuccess(`Orden aceptada. Esperando comprobante de pago de ${order.targetUser}`);
+
+                } else if (currentStatus === 'payment_sent' || currentStatus === 'accepted') {
+                    // Apply plan and approve
+                    // Apply plan to user
+                    const usersRef = collection(db, 'users');
+                    const usersQuery = query(usersRef, where('telegramId', '==', orderData.clientId));
+                    const usersSnapshot = await getDocs(usersQuery);
+
+                    if (usersSnapshot.empty) {
+                        showWarning('Usuario no encontrado');
+                        return;
+                    }
+
+                    const userDoc = usersSnapshot.docs[0];
+                    const userId = userDoc.id;
+                    const userData = userDoc.data();
+
+                    if (orderData.plan.type === 'days') {
+                        // Apply day-based plan
+                        const now = new Date();
+                        const currentExpiry = userData.planExpiresAt?.toDate() || now;
+                        const startDate = currentExpiry > now ? currentExpiry : now;
+                        const expiryDate = new Date(startDate.getTime() + orderData.plan.duration * 24 * 60 * 60 * 1000);
+
+                        await updateDoc(doc(db, 'users', userId), {
+                            plan: orderData.plan.id,
+                            planExpiresAt: expiryDate,
+                            updatedAt: new Date()
+                        });
+                    } else if (orderData.plan.type === 'credits') {
+                        // Apply credit-based plan
+                        const currentCredits = userData.credits || 0;
+
+                        await updateDoc(doc(db, 'users', userId), {
+                            credits: currentCredits + orderData.plan.credits,
+                            updatedAt: new Date()
+                        });
+                    }
+
+                    // Update order status
+                    await updateDoc(orderRef, {
+                        status: 'approved',
+                        'timestamps.approved': new Date(),
+                        approvedBy: user?.telegramId || user?.email
+                    });
+
+                    // Calculate and register commissions
+                    const commissionPercent = orderData.adminId ? 20 : 10;
+                    const commissionAmount = orderData.plan.price * commissionPercent / 100;
+
+                    // Update earnings (simplified - you may want to create earningsService.js)
+                    const sellerId = orderData.adminId;
+                    if (sellerId) {
+                        const now = new Date();
+                        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+                        const earningsRef = doc(db, 'earnings', sellerId);
+                        const earningsDoc = await getDoc(earningsRef);
+
+                        if (earningsDoc.exists()) {
+                            const earnings = earningsDoc.data();
+                            const currentMonthly = earnings.monthly || {};
+                            const currentMonth = currentMonthly[monthKey] || { sales: 0, amount: 0, commission: 0 };
+
+                            await updateDoc(earningsRef, {
+                                'totals.totalSales': (earnings.totals?.totalSales || 0) + 1,
+                                'totals.totalAmount': (earnings.totals?.totalAmount || 0) + orderData.plan.price,
+                                'totals.totalCommissions': (earnings.totals?.totalCommissions || 0) + commissionAmount,
+                                'totals.pendingCommissions': (earnings.totals?.pendingCommissions || 0) + commissionAmount,
+                                [`monthly.${monthKey}.sales`]: currentMonth.sales + 1,
+                                [`monthly.${monthKey}.amount`]: currentMonth.amount + orderData.plan.price,
+                                [`monthly.${monthKey}.commission`]: currentMonth.commission + commissionAmount,
+                                lastUpdated: new Date()
+                            });
+                        } else {
+                            await setDoc(earningsRef, {
+                                userId: sellerId,
+                                role: 'admin',
+                                totals: {
+                                    totalSales: 1,
+                                    totalAmount: orderData.plan.price,
+                                    totalCommissions: commissionAmount,
+                                    paidCommissions: 0,
+                                    pendingCommissions: commissionAmount
+                                },
+                                monthly: {
+                                    [monthKey]: {
+                                        sales: 1,
+                                        amount: orderData.plan.price,
+                                        commission: commissionAmount
+                                    }
+                                },
+                                lastUpdated: new Date()
+                            });
+                        }
+                    }
+
+                    showSuccess(`Orden aprobada y plan activado para ${order.targetUser}`);
+                } else {
+                    showWarning(`Esta orden ya está ${currentStatus}`);
+                }
+
+            } else {
+                // Analytics order - apply plan/credits manually
+                // Buscar al usuario por email
+                const usersRef = collection(db, 'users');
+                const usersSnapshot = await getDocs(usersRef);
+                const targetUser = usersSnapshot.docs.find(doc => doc.data().email === order.targetUserEmail);
+
+                if (!targetUser) {
+                    showWarning(`Usuario ${order.targetUser} no encontrado`);
+                    return;
+                }
+
+                const userId = targetUser.id;
+                const userData = targetUser.data();
+
+                // Aplicar cambios según el tipo de orden
+                if (order.type === 'credits') {
+                    // Agregar créditos
+                    const currentCredits = userData.credits || 0;
+                    const newCredits = currentCredits + order.amount;
+
+                    await updateDoc(doc(db, 'users', userId), {
+                        credits: newCredits
+                    });
+                } else if (order.type === 'plan') {
+                    // Agregar días al plan
+                    const now = new Date();
+                    let newExpirationDate;
+
+                    if (userData.planExpiresAt && userData.planExpiresAt.toDate() > now) {
+                        // Si tiene plan activo, sumar días a la fecha actual
+                        newExpirationDate = new Date(userData.planExpiresAt.toDate());
+                        newExpirationDate.setDate(newExpirationDate.getDate() + order.amount);
+                    } else {
+                        // Si no tiene plan o está expirado, empezar desde hoy
+                        newExpirationDate = new Date();
+                        newExpirationDate.setDate(newExpirationDate.getDate() + order.amount);
+                    }
+
+                    await updateDoc(doc(db, 'users', userId), {
+                        planExpiresAt: newExpirationDate
+                    });
+                }
+
+                // Actualizar el estado de la orden
+                const orderRef = doc(db, 'analytics_orders', orderId);
+                await updateDoc(orderRef, {
+                    status: 'approved',
+                    approvedBy: user?.name || user?.email,
+                    approvedAt: new Date()
                 });
 
-                // console.log(`✅ ${order.amount} días de plan agregados a ${order.targetUser}`);
+                showSuccess(`Orden aprobada y ${order.type === 'credits' ? 'créditos agregados' : 'plan activado'} para ${order.targetUser}`);
             }
-
-            // Actualizar el estado de la orden
-            const orderRef = doc(db, 'analytics_orders', orderId);
-            await updateDoc(orderRef, {
-                status: 'approved',
-                approvedBy: user?.name || user?.email,
-                approvedAt: new Date()
-            });
 
             // Recargar órdenes
             await loadOrders();
-            showSuccess(`Orden aprobada y ${order.type === 'credits' ? 'créditos' : 'plan'} aplicado a ${order.targetUser}`);
         } catch (error) {
             console.error('Error approving order:', error);
             showWarning('Error al aprobar la orden: ' + error.message);
@@ -213,20 +368,39 @@ const Orders = () => {
         const reason = prompt('Razón del rechazo (opcional):');
 
         try {
-            const orderRef = doc(db, 'analytics_orders', orderId);
-            await updateDoc(orderRef, {
-                status: 'rejected',
-                rejectedBy: user?.name || user?.email,
-                rejectedAt: new Date(),
-                rejectionReason: reason || 'Sin razón especificada'
-            });
+            // Buscar la orden
+            const order = orders.find(o => o.id === orderId);
+            if (!order) {
+                showWarning('Orden no encontrada');
+                return;
+            }
 
-            // Recargar órdenes
+            // Handle based on order type
+            if (order.orderType === 'purchase') {
+                // Purchase order
+                const orderRef = doc(db, 'purchase_orders', orderId);
+                await updateDoc(orderRef, {
+                    status: 'rejected',
+                    'timestamps.rejected': new Date(),
+                    rejectedBy: user?.telegramId || user?.email,
+                    rejectionReason: reason || 'Sin razón especificada'
+                });
+            } else {
+                // Analytics order
+                const orderRef = doc(db, 'analytics_orders', orderId);
+                await updateDoc(orderRef, {
+                    status: 'rejected',
+                    rejectedBy: user?.name || user?.email,
+                    rejectedAt: new Date(),
+                    rejectionReason: reason || 'Sin razón especificada'
+                });
+            }
+
             await loadOrders();
             showSuccess('Orden rechazada');
         } catch (error) {
             console.error('Error rejecting order:', error);
-            showWarning('Error al rechazar la orden');
+            showWarning('Error al rechazar la orden: ' + error.message);
         }
     };
 

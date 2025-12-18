@@ -849,7 +849,7 @@ export const getBinStats = async (period = 'all') => {
     // Calcular fecha de inicio según el período
     let startDate = null;
     const now = new Date();
-    
+
     switch (period) {
       case 'today':
         startDate = new Date(now.setHours(0, 0, 0, 0));
@@ -884,7 +884,7 @@ export const getBinStats = async (period = 'all') => {
       lives = lives.filter(live => {
         // Verificar si tiene campo de fecha (createdAt, timestamp, date, etc.)
         const dateField = live.createdAt || live.timestamp || live.date || live.created;
-        
+
         if (!dateField) {
           console.warn('Live sin fecha:', live.id);
           return false; // Excluir lives sin fecha cuando hay filtro
@@ -917,7 +917,7 @@ export const getBinStats = async (period = 'all') => {
           return false;
         }
       });
-      
+
       // console.log(`✅ Lives después de filtrar: ${lives.length} (filtrados: ${originalCount - lives.length})`);
     }
 
@@ -1081,29 +1081,29 @@ const SAMPLE_BINS = [
 export const generateTestLives = async (count = 100) => {
   try {
     // console.log(`🚀 Generando ${count} lives de prueba...`);
-    
+
     // Obtener gates existentes
     const gatesSnapshot = await getDocs(collection(db, 'gates'));
     const gates = gatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     if (gates.length === 0) {
       console.error('❌ No hay gates disponibles.');
       return;
     }
-    
+
     // console.log(`✅ Encontrados ${gates.length} gates`);
-    
+
     const createdLives = [];
-    
+
     for (let i = 0; i < count; i++) {
       const randomGate = gates[Math.floor(Math.random() * gates.length)];
       const randomBin = SAMPLE_BINS[Math.floor(Math.random() * SAMPLE_BINS.length)];
-      
+
       // Fecha aleatoria en los últimos 6 meses
       const now = new Date();
       const sixMonthsAgo = new Date(now.getTime() - (180 * 24 * 60 * 60 * 1000));
       const randomTime = sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime());
-      
+
       const liveData = {
         bin: randomBin,
         gateId: randomGate.id,
@@ -1113,20 +1113,20 @@ export const generateTestLives = async (count = 100) => {
         cardNumber: randomBin + '********' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
         status: 'approved'
       };
-      
+
       const liveRef = doc(collection(db, 'lives'));
       await setDoc(liveRef, liveData);
       createdLives.push({ id: liveRef.id, ...liveData });
-      
+
       if ((i + 1) % 10 === 0) {
         // console.log(`📊 Progreso: ${i + 1}/${count} lives creadas`);
       }
     }
-    
+
     // console.log(`✅ ¡Completado! Se crearon ${createdLives.length} lives de prueba`);
     // console.log('🏦 BINs únicos:', [...new Set(createdLives.map(l => l.bin))].length);
     // console.log('🚪 Gates únicos:', [...new Set(createdLives.map(l => l.gateId))].length);
-    
+
     return createdLives;
   } catch (error) {
     console.error('❌ Error generando lives:', error);
@@ -1137,16 +1137,16 @@ export const generateTestLives = async (count = 100) => {
 export const deleteAllTestLives = async () => {
   try {
     // console.log('🗑️ Eliminando todas las lives...');
-    
+
     const livesSnapshot = await getDocs(collection(db, 'lives'));
     const deletions = [];
-    
+
     const { deleteDoc } = await import('firebase/firestore');
-    
+
     for (const docSnap of livesSnapshot.docs) {
       deletions.push(deleteDoc(docSnap.ref));
     }
-    
+
     await Promise.all(deletions);
     // console.log(`✅ Eliminadas ${deletions.length} lives`);
   } catch (error) {
@@ -1163,33 +1163,57 @@ export const deleteAllTestLives = async () => {
 export const getAnalyticsStats = async (dateRange = 'all') => {
   try {
     const startDate = getDateRangeStart(dateRange);
-    
-    // Obtener órdenes
-    const ordersRef = collection(db, 'analytics_orders');
-    const ordersSnapshot = await getDocs(ordersRef);
-    
+
+    // Obtener analytics_orders (old system)
+    const analyticsOrdersRef = collection(db, 'analytics_orders');
+    const analyticsOrdersSnapshot = await getDocs(analyticsOrdersRef);
+
+    // Obtener purchase_orders (new system)
+    const purchaseOrdersRef = collection(db, 'purchase_orders');
+    const purchaseOrdersSnapshot = await getDocs(purchaseOrdersRef);
+
     // Obtener actividad
     const activityRef = collection(db, 'analytics_activity');
     const activitySnapshot = await getDocs(activityRef);
-    
+
     // Obtener suscripciones
     const subsRef = collection(db, 'analytics_subscriptions');
     const subsSnapshot = await getDocs(subsRef);
-    
+
+    // Combinar órdenes de ambos sistemas
+    let analyticsOrders = analyticsOrdersSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      orderType: 'analytics'
+    }));
+
+    let purchaseOrders = purchaseOrdersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        orderType: 'purchase',
+        // Map to analytics format
+        price: data.plan?.price || 0,
+        status: data.status,
+        createdAt: data.timestamps?.created
+      };
+    });
+
+    let orders = [...analyticsOrders, ...purchaseOrders];
+
     // Filtrar órdenes por fecha si es necesario
-    let orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
     if (startDate) {
       orders = orders.filter(order => {
         if (!order.createdAt) return false;
-        const orderDate = order.createdAt.toDate();
+        const orderDate = order.createdAt.toDate ? order.createdAt.toDate() : order.createdAt;
         return orderDate >= startDate;
       });
     }
-    
+
     // Filtrar actividad por fecha
     let activity = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     if (startDate) {
       activity = activity.filter(act => {
         if (!act.timestamp) return false;
@@ -1197,10 +1221,10 @@ export const getAnalyticsStats = async (dateRange = 'all') => {
         return actDate >= startDate;
       });
     }
-    
+
     // Filtrar suscripciones por fecha
     let subscriptions = subsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     if (startDate) {
       subscriptions = subscriptions.filter(sub => {
         if (!sub.createdAt) return false;
@@ -1208,64 +1232,75 @@ export const getAnalyticsStats = async (dateRange = 'all') => {
         return subDate >= startDate;
       });
     }
-    
-    // Calcular métricas de órdenes
+
+    // Calcular métricas de órdenes (ambos sistemas)
     const totalOrders = orders.length;
     const approvedOrders = orders.filter(o => o.status === 'approved').length;
     const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    
+
     // Calcular revenue del período filtrado
     const totalRevenue = orders
       .filter(o => o.status === 'approved')
       .reduce((sum, o) => sum + (o.price || 0), 0);
-    
+
     // Calcular revenue del mes actual y anterior para comparación
     const now = new Date();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-    
+
+    // Combinar todas las órdenes para métricas mensuales
+    const allOrders = [
+      ...analyticsOrdersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), orderType: 'analytics' })),
+      ...purchaseOrdersSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          price: data.plan?.price || 0,
+          status: data.status,
+          createdAt: data.timestamps?.created,
+          orderType: 'purchase'
+        };
+      })
+    ];
+
     // Órdenes del mes actual (sin filtro de dateRange)
-    const currentMonthOrders = ordersSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(o => {
-        if (!o.createdAt) return false;
-        const orderDate = o.createdAt.toDate();
-        return orderDate >= currentMonthStart && orderDate <= now;
-      });
-    
+    const currentMonthOrders = allOrders.filter(o => {
+      if (!o.createdAt) return false;
+      const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : o.createdAt;
+      return orderDate >= currentMonthStart && orderDate <= now;
+    });
+
     // Órdenes del mes anterior
-    const previousMonthOrders = ordersSnapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(o => {
-        if (!o.createdAt) return false;
-        const orderDate = o.createdAt.toDate();
-        return orderDate >= previousMonthStart && orderDate <= previousMonthEnd;
-      });
-    
+    const previousMonthOrders = allOrders.filter(o => {
+      if (!o.createdAt) return false;
+      const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : o.createdAt;
+      return orderDate >= previousMonthStart && orderDate <= previousMonthEnd;
+    });
+
     const currentMonthRevenue = currentMonthOrders
       .filter(o => o.status === 'approved')
       .reduce((sum, o) => sum + (o.price || 0), 0);
-    
+
     const previousMonthRevenue = previousMonthOrders
       .filter(o => o.status === 'approved')
       .reduce((sum, o) => sum + (o.price || 0), 0);
-    
+
     // Calcular suscripciones por tipo
     const planSubs = subscriptions.filter(s => s.type === 'plan').length;
     const creditSubs = subscriptions.filter(s => s.type === 'credits').length;
-    
+
     const renewals = subscriptions.filter(s => s.isRenewal).length;
-    
+
     // Usuarios únicos activos
     const uniqueUsers = new Set(activity.map(a => a.userId)).size;
-    
+
     // Obtener estadísticas de lives
     const livesRef = collection(db, 'lives');
     const livesSnapshot = await getDocs(livesRef);
     const totalLives = livesSnapshot.size;
     const availableLives = livesSnapshot.docs.filter(doc => doc.data().status === 'available').length;
-    
+
     return {
       orders: {
         total: totalOrders,
@@ -1307,14 +1342,14 @@ export const getAnalyticsStats = async (dateRange = 'all') => {
 export const getSalesDynamics = async (dateRange = 'all') => {
   try {
     const startDate = getDateRangeStart(dateRange);
-    
+
     const ordersRef = collection(db, 'analytics_orders');
     const snapshot = await getDocs(ordersRef);
-    
+
     let orders = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(o => o.status === 'approved');
-    
+
     // Aplicar filtro de fecha
     if (startDate) {
       orders = orders.filter(order => {
@@ -1323,15 +1358,15 @@ export const getSalesDynamics = async (dateRange = 'all') => {
         return orderDate >= startDate;
       });
     }
-    
+
     // Agrupar por mes
     const monthlyData = {};
-    
+
     orders.forEach(order => {
       const date = order.createdAt.toDate();
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthName = date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).toUpperCase();
-      
+
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = {
           month: monthName,
@@ -1341,7 +1376,7 @@ export const getSalesDynamics = async (dateRange = 'all') => {
           total: 0
         };
       }
-      
+
       if (order.type === 'plan') {
         monthlyData[monthKey].plans += order.price || 0;
       } else {
@@ -1349,14 +1384,14 @@ export const getSalesDynamics = async (dateRange = 'all') => {
       }
       monthlyData[monthKey].total += order.price || 0;
     });
-    
+
     // Convertir a array y ordenar cronológicamente
     const sortedData = Object.values(monthlyData)
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-    
+
     // Limitar a los últimos 12 meses
     const last12Months = sortedData.slice(-12);
-    
+
     // Remover monthKey del resultado final (solo se usó para ordenar)
     return last12Months.map(({ monthKey, ...rest }) => rest);
   } catch (error) {
@@ -1371,12 +1406,12 @@ export const getSalesDynamics = async (dateRange = 'all') => {
 export const getUserActivity = async (dateRange = 'all') => {
   try {
     const startDate = getDateRangeStart(dateRange);
-    
+
     const activityRef = collection(db, 'analytics_activity');
     const snapshot = await getDocs(activityRef);
-    
+
     let activity = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     // Aplicar filtro de fecha
     if (startDate) {
       activity = activity.filter(act => {
@@ -1385,15 +1420,15 @@ export const getUserActivity = async (dateRange = 'all') => {
         return actDate >= startDate;
       });
     }
-    
+
     // Agrupar por día
     const dailyData = {};
-    
+
     activity.forEach(act => {
       const date = act.timestamp.toDate();
       const dayKey = date.toISOString().split('T')[0];
       const displayDate = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-      
+
       if (!dailyData[dayKey]) {
         dailyData[dayKey] = {
           date: displayDate,
@@ -1401,15 +1436,15 @@ export const getUserActivity = async (dateRange = 'all') => {
           count: 0
         };
       }
-      
+
       dailyData[dayKey].count++;
     });
-    
+
     // Ordenar cronológicamente y limitar a últimos 30 días
     const sortedData = Object.values(dailyData)
       .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
       .slice(-30);
-    
+
     // Remover dateKey del resultado final
     return sortedData.map(({ dateKey, ...rest }) => rest);
   } catch (error) {
@@ -1423,21 +1458,52 @@ export const getUserActivity = async (dateRange = 'all') => {
  */
 export const getCustomerOrders = async (limit = 10) => {
   try {
-    const ordersRef = collection(db, 'analytics_orders');
-    const snapshot = await getDocs(ordersRef);
-    
-    const orders = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate())
+    // Fetch analytics_orders (old system)
+    const analyticsOrdersRef = collection(db, 'analytics_orders');
+    const analyticsSnapshot = await getDocs(analyticsOrdersRef);
+
+    const analyticsOrders = analyticsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      orderType: 'analytics'
+    }));
+
+    // Fetch purchase_orders (new system)
+    const purchaseOrdersRef = collection(db, 'purchase_orders');
+    const purchaseSnapshot = await getDocs(purchaseOrdersRef);
+
+    const purchaseOrders = purchaseSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        orderType: 'purchase',
+        // Map to analytics format
+        createdBy: data.adminUsername || 'Pendiente',
+        targetUser: data.clientUsername,
+        price: data.plan?.price,
+        status: data.status,
+        createdAt: data.timestamps?.created
+      };
+    });
+
+    // Combine and sort
+    const allOrders = [...analyticsOrders, ...purchaseOrders]
+      .filter(order => order.createdAt) // Filter out orders without date
+      .sort((a, b) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : a.createdAt;
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : b.createdAt;
+        return dateB - dateA;
+      })
       .slice(0, limit);
-    
+
     // Fetch user photos for each order
-    const ordersWithPhotos = await Promise.all(orders.map(async (order) => {
+    const ordersWithPhotos = await Promise.all(allOrders.map(async (order) => {
       let adminPhoto = null;
       let userPhoto = null;
-      
+
       // Fetch admin photo
-      if (order.createdBy) {
+      if (order.createdBy && order.createdBy !== 'Pendiente') {
         try {
           const usersRef = collection(db, 'users');
           const q = query(usersRef, where('name', '==', order.createdBy));
@@ -1449,7 +1515,7 @@ export const getCustomerOrders = async (limit = 10) => {
           console.error('Error fetching admin photo:', error);
         }
       }
-      
+
       // Fetch target user photo
       if (order.targetUser) {
         try {
@@ -1463,22 +1529,25 @@ export const getCustomerOrders = async (limit = 10) => {
           console.error('Error fetching user photo:', error);
         }
       }
-      
+
+      const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : order.createdAt;
+
       return {
         id: order.id,
         profile: order.createdBy,
         profilePhoto: adminPhoto,
         address: order.targetUser,
         addressPhoto: userPhoto,
-        date: order.createdAt.toDate().toLocaleDateString('es-ES'),
+        date: orderDate ? orderDate.toLocaleDateString('es-ES') : 'N/A',
         status: order.status,
-        price: `$${order.price}`
+        price: `$${order.price || 0}`,
+        orderType: order.orderType
       };
     }));
-    
+
     return ordersWithPhotos;
   } catch (error) {
-    console.error('Error getting customer orders:', error);
+    console.error('Error fetching customer orders:', error);
     return [];
   }
 };
@@ -1595,7 +1664,7 @@ export const deleteAllNotifications = async (userId) => {
     const notificationsRef = collection(db, 'notifications');
     const q = query(notificationsRef, where('userId', '==', userId));
     const snapshot = await getDocs(q);
-    
+
     const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
     await Promise.all(deletePromises);
   } catch (error) {
@@ -1612,11 +1681,11 @@ export const notifyAdmins = async (type, title, message, data = {}) => {
     const usersRef = collection(db, 'users');
     const q = query(usersRef, where('role', 'in', ['admin', 'dev']));
     const snapshot = await getDocs(q);
-    
-    const promises = snapshot.docs.map(userDoc => 
+
+    const promises = snapshot.docs.map(userDoc =>
       createNotification(userDoc.id, type, title, message, data)
     );
-    
+
     await Promise.all(promises);
   } catch (error) {
     console.error('Error notifying admins:', error);
@@ -1635,11 +1704,11 @@ export const linkTelegramAccount = async (firebaseUid, telegramId, username = ''
     const telegramUsersRef = collection(db, 'telegram_users');
     const q = query(telegramUsersRef, where('telegramId', '==', telegramId.toString()));
     const existing = await getDocs(q);
-    
+
     if (!existing.empty) {
       throw new Error('Este Telegram ID ya está vinculado a otra cuenta');
     }
-    
+
     // Create link
     const linkRef = doc(collection(db, 'telegram_users'));
     await setDoc(linkRef, {
@@ -1651,7 +1720,7 @@ export const linkTelegramAccount = async (firebaseUid, telegramId, username = ''
       linkedAt: serverTimestamp(),
       lastActive: serverTimestamp()
     });
-    
+
     return true;
   } catch (error) {
     console.error('Error linking Telegram account:', error);
@@ -1667,11 +1736,11 @@ export const getTelegramLink = async (firebaseUid) => {
     const telegramUsersRef = collection(db, 'telegram_users');
     const q = query(telegramUsersRef, where('firebaseUid', '==', firebaseUid));
     const snapshot = await getDocs(q);
-    
+
     if (snapshot.empty) {
       return null;
     }
-    
+
     const doc = snapshot.docs[0];
     return { id: doc.id, ...doc.data() };
   } catch (error) {
@@ -1688,12 +1757,12 @@ export const unlinkTelegramAccount = async (firebaseUid) => {
     const telegramUsersRef = collection(db, 'telegram_users');
     const q = query(telegramUsersRef, where('firebaseUid', '==', firebaseUid));
     const snapshot = await getDocs(q);
-    
+
     if (!snapshot.empty) {
       const docRef = snapshot.docs[0].ref;
       await deleteDoc(docRef);
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error unlinking Telegram account:', error);
@@ -1727,13 +1796,13 @@ export const requestPasswordChange = async (userId) => {
   try {
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Get Telegram link
     const telegramLink = await getTelegramLink(userId);
     if (!telegramLink) {
       throw new Error('Telegram no vinculado. Por favor vincula tu cuenta de Telegram primero.');
     }
-    
+
     // Store code in pending_password_changes collection
     const changeRef = doc(collection(db, 'pending_password_changes'));
     await setDoc(changeRef, {
@@ -1744,11 +1813,11 @@ export const requestPasswordChange = async (userId) => {
       expiresAt: Timestamp.fromMillis(Date.now() + 10 * 60 * 1000), // 10 minutes
       used: false
     });
-    
+
     // TODO: Send code to Telegram bot
     // This will be handled by the Telegram bot service
     // console.log(`🔐 Password change code for user ${userId} (Telegram: ${telegramLink.telegramId}): ${code}`);
-    
+
     return {
       success: true,
       message: 'Código de confirmación enviado a tu Telegram',
@@ -1775,29 +1844,29 @@ export const confirmPasswordChange = async (userId, code, newPassword) => {
       where('used', '==', false)
     );
     const snapshot = await getDocs(q);
-    
+
     if (snapshot.empty) {
       throw new Error('Código inválido o expirado');
     }
-    
+
     const changeDoc = snapshot.docs[0];
     const changeData = changeDoc.data();
-    
+
     // Check if expired
     if (changeData.expiresAt.toMillis() < Date.now()) {
       throw new Error('Código expirado. Solicita uno nuevo.');
     }
-    
+
     // Mark as used
     await updateDoc(changeDoc.ref, {
       used: true,
       usedAt: serverTimestamp()
     });
-    
+
     // Update password in Firebase Auth
     // Note: This requires Firebase Admin SDK on backend
     // For now, return success and handle password update separately
-    
+
     return {
       success: true,
       message: 'Contraseña actualizada exitosamente'

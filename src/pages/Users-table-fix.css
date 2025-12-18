@@ -109,9 +109,9 @@
 
     /* Convert table rows to horizontal single-row cards */
     .table-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
         gap: 0.75rem;
         padding: 1rem !important;
         background: var(--bg-secondary);
