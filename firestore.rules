@@ -152,8 +152,8 @@
         // ========== ANALYTICS - ACTIVIDAD ==========
         
         match /analytics_activity/{activityId} {
-          // Admins and owner can read
-          allow read: if isAdminOrOwner();
+          // All authenticated users can read for general stats
+          allow read: if isAuthenticated();
           
           // Cualquier usuario autenticado puede crear su propia actividad
           allow create: if isAuthenticated();
@@ -165,8 +165,8 @@
         // ========== ANALYTICS - SUSCRIPCIONES ==========
         
         match /analytics_subscriptions/{subscriptionId} {
-          // Admins and owner can read
-          allow read: if isAdminOrOwner();
+          // All authenticated users can read for general stats
+          allow read: if isAuthenticated();
           
           // Admins and owner can create
           allow create: if isAdminOrOwner();

@@ -6,31 +6,95 @@ import {
     Users,
     CreditCard,
     DollarSign,
-    TrendingUp
+    TrendingUp,
+    Heart,
+    Shield,
+    Activity
 } from 'lucide-react';
 import { Card, Title, BarChart, DonutChart, AreaChart } from '@tremor/react';
 import DashboardLayout from '../components/DashboardLayout';
 import MetricCard from '../components/MetricCard';
 import DateRangePicker from '../components/DateRangePicker';
+import { useAuth } from '../context/AuthContext';
 import {
     getAnalyticsStats,
     getSalesDynamics,
     getUserActivity,
     getCustomerOrders
 } from '../services/db';
+import { db } from '../services/firebase';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import './Pages.css';
 
 const Overview = () => {
+    const { user } = useAuth();
     const [dateRange, setDateRange] = useState('all');
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
     const [salesData, setSalesData] = useState([]);
     const [activityData, setActivityData] = useState([]);
     const [ordersTable, setOrdersTable] = useState([]);
+    const [clientStats, setClientStats] = useState(null);
+
+    const isClient = user?.role === 'client';
 
     useEffect(() => {
-        loadAnalyticsData();
-    }, [dateRange]);
+        if (isClient) {
+            loadClientStats();
+        } else {
+            loadAnalyticsData();
+        }
+    }, [dateRange, isClient]);
+
+    const loadClientStats = async () => {
+        try {
+            setLoading(true);
+
+            // Get total lives count
+            const livesSnapshot = await getDocs(collection(db, 'lives'));
+            const totalLives = livesSnapshot.size;
+
+            // Get today's lives
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayTimestamp = Timestamp.fromDate(today);
+
+            const todayLivesQuery = query(
+                collection(db, 'lives'),
+                where('createdAt', '>=', todayTimestamp)
+            );
+            const todayLivesSnapshot = await getDocs(todayLivesQuery);
+            const todayLives = todayLivesSnapshot.size;
+
+            // Get active users (users who logged in last 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const sevenDaysTimestamp = Timestamp.fromDate(sevenDaysAgo);
+
+            const activeUsersQuery = query(
+                collection(db, 'users'),
+                where('lastLogin', '>=', sevenDaysTimestamp)
+            );
+            const activeUsersSnapshot = await getDocs(activeUsersQuery);
+            const activeUsers = activeUsersSnapshot.size;
+
+            // Get user's plan info
+            const userPlan = user?.plan || 'free';
+            const userCredits = user?.credits || 0;
+
+            setClientStats({
+                totalLives,
+                todayLives,
+                activeUsers,
+                userPlan,
+                userCredits
+            });
+        } catch (error) {
+            console.error('Error loading client stats:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const loadAnalyticsData = async () => {
         try {
@@ -62,9 +126,91 @@ const Overview = () => {
         return (
             <DashboardLayout currentPage="dashboard">
                 <div className="page-header">
-                    <h1>Analytics</h1>
+                    <h1>{isClient ? 'Dashboard' : 'Analytics'}</h1>
                     <p>Cargando datos...</p>
                 </div>
+            </DashboardLayout>
+        );
+    }
+
+    // Client Dashboard View
+    if (isClient && clientStats) {
+        return (
+            <DashboardLayout currentPage="dashboard">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    {/* Header */}
+                    <div className="page-header" style={{
+                        marginBottom: '2rem'
+                    }}>
+                        <h1>Dashboard</h1>
+                        <p>Estadísticas generales del sistema</p>
+                    </div>
+
+                    {/* Client Stats Grid */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                        gap: '1.5rem',
+                        marginBottom: '2rem'
+                    }}>
+                        <MetricCard
+                            title="Lives Totales"
+                            value={clientStats.totalLives.toLocaleString()}
+                            icon={Heart}
+                            trend="neutral"
+                            color="#10b981"
+                        />
+                        <MetricCard
+                            title="Lives de Hoy"
+                            value={clientStats.todayLives.toLocaleString()}
+                            icon={Activity}
+                            trend="up"
+                            color="#3b82f6"
+                        />
+                        <MetricCard
+                            title="Usuarios Activos"
+                            value={clientStats.activeUsers.toLocaleString()}
+                            icon={Users}
+                            trend="neutral"
+                            color="#8b5cf6"
+                        />
+                        <MetricCard
+                            title="Tus Créditos"
+                            value={clientStats.userCredits.toLocaleString()}
+                            icon={CreditCard}
+                            trend="neutral"
+                            color="#f59e0b"
+                        />
+                    </div>
+
+                    {/* User Plan Info */}
+                    <Card style={{ marginTop: '2rem' }}>
+                        <Title>Tu Plan Actual</Title>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            marginTop: '1rem',
+                            padding: '1rem',
+                            background: 'var(--bg-secondary)',
+                            borderRadius: '8px'
+                        }}>
+                            <Shield size={32} color="#10b981" />
+                            <div>
+                                <h3 style={{ margin: 0, textTransform: 'capitalize' }}>
+                                    {clientStats.userPlan}
+                                </h3>
+                                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                    {clientStats.userCredits} créditos disponibles
+                                </p>
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
             </DashboardLayout>
         );
     }
