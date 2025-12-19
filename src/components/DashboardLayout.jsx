@@ -117,7 +117,7 @@ const DashboardLayout = ({ children, currentPage }) => {
             label: 'Ganancias',
             icon: DollarSign,
             path: '/dashboard/earnings',
-            showForRoles: ['admin', 'dev']
+            showForRoles: ['admin', 'dev', 'owner']
         },
         // 9. Admin Section - Gate Status
         {
@@ -175,6 +175,9 @@ const DashboardLayout = ({ children, currentPage }) => {
 
         // Filtrar items solo para Admin
         if (item.adminOnly && !isAdmin()) return false;
+
+        // Filtrar items por roles específicos (showForRoles)
+        if (item.showForRoles && !item.showForRoles.includes(user?.role)) return false;
 
         // Filtrar items que requieren plan activo
         if (item.requiresPlan && !canAccessPage('bin-analytics')) return false;

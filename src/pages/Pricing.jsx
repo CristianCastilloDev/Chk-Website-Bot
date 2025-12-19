@@ -21,7 +21,7 @@ const Pricing = () => {
     const loadTeamMembers = async () => {
         try {
             const usersRef = collection(db, 'users');
-            const adminQuery = query(usersRef, where('role', 'in', ['admin', 'dev']));
+            const adminQuery = query(usersRef, where('role', 'in', ['admin', 'dev', 'owner']));
             const usersSnapshot = await getDocs(adminQuery);
 
             const members = [];
@@ -40,10 +40,15 @@ const Pricing = () => {
                     telegramData = telegramSnapshot.docs[0].data();
                 }
 
+                // Determine role display name
+                let roleDisplay = 'Administrator';
+                if (userData.role === 'dev') roleDisplay = 'Developer';
+                if (userData.role === 'owner') roleDisplay = 'Owner';
+
                 members.push({
                     id: userDoc.id,
                     name: userData.name || userData.username,
-                    role: userData.role === 'dev' ? 'Developer' : 'Administrator',
+                    role: roleDisplay,
                     telegramUsername: telegramData?.username || null,
                     photoURL: userData.photoURL || null,
                     bio: userData.bio || 'Disponible para ayudarte con tus consultas.'
