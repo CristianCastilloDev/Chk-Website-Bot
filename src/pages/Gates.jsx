@@ -287,6 +287,38 @@ const Gates = () => {
         }
     };
 
+    // Get gate color scheme based on type
+    const getGateColors = (type) => {
+        switch (type) {
+            case 'stripe':
+                return { primary: '#635BFF', secondary: '#0A2540', gradient: 'linear-gradient(135deg, rgba(99, 91, 255, 0.15), rgba(10, 37, 64, 0.15))', border: 'rgba(99, 91, 255, 0.3)', shadow: 'rgba(99, 91, 255, 0.2)' };
+            case 'paypal':
+                return { primary: '#0070BA', secondary: '#003087', gradient: 'linear-gradient(135deg, rgba(0, 112, 186, 0.15), rgba(0, 48, 135, 0.15))', border: 'rgba(0, 112, 186, 0.3)', shadow: 'rgba(0, 112, 186, 0.2)' };
+            case 'braintree':
+                return { primary: '#00C853', secondary: '#00A843', gradient: 'linear-gradient(135deg, rgba(0, 200, 83, 0.15), rgba(0, 168, 67, 0.15))', border: 'rgba(0, 200, 83, 0.3)', shadow: 'rgba(0, 200, 83, 0.2)' };
+            case 'authorize':
+                return { primary: '#E57200', secondary: '#C66100', gradient: 'linear-gradient(135deg, rgba(229, 114, 0, 0.15), rgba(198, 97, 0, 0.15))', border: 'rgba(229, 114, 0, 0.3)', shadow: 'rgba(229, 114, 0, 0.2)' };
+            case 'shopify':
+                return { primary: '#96BF48', secondary: '#7AB800', gradient: 'linear-gradient(135deg, rgba(150, 191, 72, 0.15), rgba(122, 184, 0, 0.15))', border: 'rgba(150, 191, 72, 0.3)', shadow: 'rgba(150, 191, 72, 0.2)' };
+            case 'cybersource':
+                return { primary: '#FF6B00', secondary: '#E65100', gradient: 'linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(230, 81, 0, 0.15))', border: 'rgba(255, 107, 0, 0.3)', shadow: 'rgba(255, 107, 0, 0.2)' };
+            case 'moneris':
+                return { primary: '#00A3E0', secondary: '#0077A6', gradient: 'linear-gradient(135deg, rgba(0, 163, 224, 0.15), rgba(0, 119, 166, 0.15))', border: 'rgba(0, 163, 224, 0.3)', shadow: 'rgba(0, 163, 224, 0.2)' };
+            case 'nmi':
+                return { primary: '#1E88E5', secondary: '#1565C0', gradient: 'linear-gradient(135deg, rgba(30, 136, 229, 0.15), rgba(21, 101, 192, 0.15))', border: 'rgba(30, 136, 229, 0.3)', shadow: 'rgba(30, 136, 229, 0.2)' };
+            case 'cardknox':
+                return { primary: '#FF5722', secondary: '#E64A19', gradient: 'linear-gradient(135deg, rgba(255, 87, 34, 0.15), rgba(230, 74, 25, 0.15))', border: 'rgba(255, 87, 34, 0.3)', shadow: 'rgba(255, 87, 34, 0.2)' };
+            case 'payfabric':
+                return { primary: '#0EA5E9', secondary: '#0284C7', gradient: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(2, 132, 199, 0.15))', border: 'rgba(14, 165, 233, 0.3)', shadow: 'rgba(14, 165, 233, 0.2)' };
+            case 'payflow':
+                return { primary: '#0070BA', secondary: '#003087', gradient: 'linear-gradient(135deg, rgba(0, 112, 186, 0.15), rgba(0, 48, 135, 0.15))', border: 'rgba(0, 112, 186, 0.3)', shadow: 'rgba(0, 112, 186, 0.2)' };
+            case 'idk':
+                return { primary: '#9333EA', secondary: '#7C3AED', gradient: 'linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(124, 58, 237, 0.15))', border: 'rgba(147, 51, 234, 0.3)', shadow: 'rgba(147, 51, 234, 0.2)' };
+            default:
+                return { primary: '#6366F1', secondary: '#4F46E5', gradient: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(79, 70, 229, 0.15))', border: 'rgba(99, 102, 241, 0.3)', shadow: 'rgba(99, 102, 241, 0.2)' };
+        }
+    };
+
 
     const toggleSection = (section) => {
         setCollapsedSections(prev => ({

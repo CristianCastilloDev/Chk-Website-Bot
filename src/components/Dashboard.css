@@ -411,6 +411,8 @@
     font-weight: 600;
     font-size: 0.875rem;
     flex-shrink: 0;
+    border-color: gray;
+    border: 1px solid var(--glass-border);
 }
 
 .user-info {
