@@ -41,7 +41,20 @@ const Register = () => {
             } else if (data.status === 'failed') {
                 setShowConfirmModal(false);
                 setIsLoading(false);
-                setError(data.error || 'Error al procesar el registro');
+
+                // Provide user-friendly error message
+                let errorMsg = data.error || 'Error al procesar el registro';
+
+                // If error is about not starting conversation with bot, add instructions
+                if (errorMsg.includes('not started conversation') || errorMsg.includes('send /start')) {
+                    errorMsg = '⚠️ Debes iniciar conversación con el bot primero.\n\n' +
+                        '1. Abre Telegram\n' +
+                        '2. Busca el bot\n' +
+                        '3. Presiona "Start" o envía /start\n' +
+                        '4. Vuelve aquí e intenta registrarte de nuevo';
+                }
+
+                setError(errorMsg);
             }
         });
 
