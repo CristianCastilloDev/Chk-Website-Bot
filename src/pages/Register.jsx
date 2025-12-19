@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, User, ArrowRight, Loader2, AtSign, MessageCircle, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { collection, addDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, doc, onSnapshot, query, where, limit, getDocs } from 'firebase/firestore';
 import './Auth.css';
 
 const Register = () => {
@@ -98,6 +98,63 @@ const Register = () => {
         setIsLoading(true);
 
         try {
+            // Check if username already exists
+            const usernameQuery = query(
+                collection(db, 'users'),
+                where('username', '==', username),
+                limit(1)
+            );
+            const usernameSnapshot = await getDocs(usernameQuery);
+
+            if (!usernameSnapshot.empty) {
+                setError('❌ Este nombre de usuario ya está en uso. Por favor elige otro.');
+                setIsLoading(false);
+                return;
+            }
+
+            // Check if Telegram ID is already linked
+            const telegramQuery = query(
+                collection(db, 'telegram_users'),
+                where('telegramId', '==', telegramId),
+                limit(1)
+            );
+            const telegramSnapshot = await getDocs(telegramQuery);
+
+            if (!telegramSnapshot.empty) {
+                setError('❌ Este Telegram ID ya está vinculado a otra cuenta.');
+                setIsLoading(false);
+                return;
+            }
+
+            // Check if there's already a pending registration for this username or telegram ID
+            const pendingUsernameQuery = query(
+                collection(db, 'pending_registrations'),
+                where('username', '==', username),
+                where('status', '==', 'pending'),
+                limit(1)
+            );
+            const pendingUsernameSnapshot = await getDocs(pendingUsernameQuery);
+
+            if (!pendingUsernameSnapshot.empty) {
+                setError('⚠️ Ya existe un registro pendiente para este usuario. Por favor espera a que se procese o cancélalo primero.');
+                setIsLoading(false);
+                return;
+            }
+
+            const pendingTelegramQuery = query(
+                collection(db, 'pending_registrations'),
+                where('telegramId', '==', telegramId),
+                where('status', '==', 'pending'),
+                limit(1)
+            );
+            const pendingTelegramSnapshot = await getDocs(pendingTelegramQuery);
+
+            if (!pendingTelegramSnapshot.empty) {
+                setError('⚠️ Ya existe un registro pendiente para este Telegram ID. Por favor espera a que se procese.');
+                setIsLoading(false);
+                return;
+            }
+
             // Create pending registration
             const docRef = await addDoc(collection(db, 'pending_registrations'), {
                 username: username,
