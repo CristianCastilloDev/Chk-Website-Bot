@@ -46,12 +46,16 @@ const Register = () => {
                 let errorMsg = data.error || 'Error al procesar el registro';
 
                 // If error is about not starting conversation with bot, add instructions
-                if (errorMsg.includes('not started conversation') || errorMsg.includes('send /start')) {
-                    errorMsg = '⚠️ Debes iniciar conversación con el bot primero.\n\n' +
-                        '1. Abre Telegram\n' +
-                        '2. Busca el bot\n' +
-                        '3. Presiona "Start" o envía /start\n' +
-                        '4. Vuelve aquí e intenta registrarte de nuevo';
+                if (errorMsg.includes('not started conversation') || errorMsg.includes('send /start') || errorMsg.includes('Could not send Telegram message')) {
+                    errorMsg = '⚠️ PASO REQUERIDO: Debes iniciar conversación con el bot primero\n\n' +
+                        '📱 Sigue estos pasos:\n\n' +
+                        '1️⃣ Abre Telegram en tu teléfono\n' +
+                        '2️⃣ Busca nuestro bot o usa este enlace:\n' +
+                        '   👉 https://t.me/ContinentalCHKBot\n\n' +
+                        '3️⃣ Presiona el botón "START" o envía el comando /start\n\n' +
+                        '4️⃣ Espera el mensaje de bienvenida del bot\n\n' +
+                        '5️⃣ Vuelve aquí y haz clic en "Crear Cuenta" nuevamente\n\n' +
+                        '💡 Esto es necesario para que el bot pueda enviarte la confirmación de registro.';
                 }
 
                 setError(errorMsg);
