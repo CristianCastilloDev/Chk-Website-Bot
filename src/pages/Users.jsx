@@ -65,8 +65,8 @@ const Users = () => {
     };
 
     const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
 
         // Custom filter logic
         let matchesRole = true;
@@ -132,7 +132,8 @@ const Users = () => {
             premium: Crown,
             pro: Shield,
             admin: Shield,
-            dev: Code
+            dev: Code,
+            owner: Crown
         };
         const Icon = icons[role] || User;
         return <Icon size={14} />;
