@@ -20,7 +20,8 @@ const GateStatusManager = () => {
         status: 'inactive',
         icon: 'Shield',
         order: 1,
-        chargeAmount: 1.00
+        chargeAmount: 1.00,
+        command: ''
     });
     const { isDev } = usePermissions();
 
@@ -62,7 +63,8 @@ const GateStatusManager = () => {
             type: gate.type || 'stripe',
             category: gate.category || 'CHARGE',
             icon: gate.icon || 'Shield',
-            status: gate.status || 'inactive'
+            status: gate.status || 'inactive',
+            command: gate.command || ''
         });
     };
 
@@ -103,7 +105,8 @@ const GateStatusManager = () => {
                 status: 'inactive',
                 icon: 'Shield',
                 order: 1,
-                chargeAmount: 1.00
+                chargeAmount: 1.00,
+                command: ''
             });
             alert('✅ Gate creado exitosamente');
         } catch (error) {
@@ -359,6 +362,29 @@ const GateStatusManager = () => {
                                         />
                                     </div>
 
+                                    {/* Comando de Telegram */}
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Comando de Telegram:</label>
+                                        <input
+                                            type="text"
+                                            value={newGateForm.command}
+                                            onChange={(e) => setNewGateForm({ ...newGateForm, command: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
+                                            placeholder="Ej: stripe1, klove100"
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '8px',
+                                                border: '1px solid var(--glass-border)',
+                                                background: 'var(--bg-secondary)',
+                                                color: 'var(--text-primary)',
+                                                fontSize: '1rem'
+                                            }}
+                                        />
+                                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                                            El comando será: /{newGateForm.command || 'comando'}
+                                        </p>
+                                    </div>
+
                                     {/* Status */}
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Status Inicial:</label>
@@ -522,6 +548,27 @@ const GateStatusManager = () => {
                                                     resize: 'vertical'
                                                 }}
                                             />
+                                        </div>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>Comando:</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.command}
+                                                onChange={(e) => setEditForm({ ...editForm, command: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
+                                                placeholder="Ej: stripe1"
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem',
+                                                    borderRadius: '6px',
+                                                    border: '1px solid var(--glass-border)',
+                                                    background: 'var(--bg-secondary)',
+                                                    color: 'var(--text-primary)',
+                                                    fontSize: '0.9rem'
+                                                }}
+                                            />
+                                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                                                /{editForm.command || 'comando'}
+                                            </p>
                                         </div>
                                         <div style={{ marginBottom: '1rem' }}>
                                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>Status:</label>
